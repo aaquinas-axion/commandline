@@ -9,6 +9,8 @@ using CommandLine.Infrastructure;
 using CommandLine.Text;
 using CSharpx;
 
+using SystemTypeConverter = System.ComponentModel.TypeConverter;
+
 namespace CommandLine.Core
 {
     static class ReflectionExtensions
@@ -222,6 +224,12 @@ namespace CommandLine.Core
             if (!isStruct) return false;
             var ctor = type.GetTypeInfo().GetConstructor(new[] { typeof(string) });
             return ctor != null;
+        }
+
+        public static bool HasCustomConverter(this Type type, out SystemTypeConverter converter)
+        {
+            converter = System.ComponentModel.TypeDescriptor.GetConverter(type);
+            return !ReferenceEquals(converter, null) && converter.CanConvertFrom(typeof(string));
         }
     }
 }

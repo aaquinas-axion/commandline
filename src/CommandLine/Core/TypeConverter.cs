@@ -9,6 +9,8 @@ using CSharpx;
 using RailwaySharp.ErrorHandling;
 using System.Reflection;
 
+using SystemTypeConverter = System.ComponentModel.TypeConverter;
+
 namespace CommandLine.Core
 {
     static class TypeConverter
@@ -121,7 +123,12 @@ namespace CommandLine.Core
                 }
             };
 
+            Func<SystemTypeConverter, object> useCustom = 
+                (aConverter) => aConverter.ConvertFromString(value);
+
             if (conversionType.IsCustomStruct()) return Result.Try(makeType);
+            if (conversionType.HasCustomConverter(out SystemTypeConverter converter)) 
+                return Result.Try(() => useCustom(converter));
             return Result.Try(
                 conversionType.IsPrimitiveEx() || ReflectionHelper.IsFSharpOptionType(conversionType)
                     ? changeType
