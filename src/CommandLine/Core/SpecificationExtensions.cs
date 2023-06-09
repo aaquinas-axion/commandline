@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using CSharpx;
 
 namespace CommandLine.Core
 {
@@ -36,7 +37,8 @@ namespace CommandLine.Core
                 specification.TargetType,
                 specification.Group,
                 specification.FlagCounter,
-                specification.Hidden);
+                specification.Hidden,
+                specification.TypeConverter);
         }
 
         public static string UniqueName(this OptionSpecification specification)

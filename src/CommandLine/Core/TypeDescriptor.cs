@@ -3,19 +3,27 @@
 using System;
 using CSharpx;
 
+using SysTypeConverter = System.ComponentModel.TypeConverter;
+
 namespace CommandLine.Core
 {
     struct TypeDescriptor
     {
-        private readonly TargetType targetType;
-        private readonly Maybe<int> maxItems;
-        private readonly Maybe<TypeDescriptor> nextValue;
+        private readonly TargetType              targetType;
+        private readonly Maybe<int>              maxItems;
+        private readonly Maybe<TypeDescriptor>   nextValue;
+        private readonly Maybe<SysTypeConverter> typeConverter;
 
-        private TypeDescriptor(TargetType targetType, Maybe<int> maxItems, Maybe<TypeDescriptor> nextValue = null)
+        private TypeDescriptor(
+            TargetType            targetType,
+            Maybe<int>            maxItems,
+            Maybe<TypeDescriptor> nextValue,
+            Maybe<SysTypeConverter> typeConverter)
         {
-            this.targetType = targetType;
-            this.maxItems = maxItems;
-            this.nextValue = nextValue;
+            this.targetType    = targetType;
+            this.maxItems      = maxItems;
+            this.nextValue     = nextValue;
+            this.typeConverter = typeConverter;
         }
 
         public TargetType TargetType
@@ -33,11 +41,21 @@ namespace CommandLine.Core
             get { return this.nextValue; }
         }
 
-        public static TypeDescriptor Create(TargetType tag, Maybe<int> maximumItems, TypeDescriptor next = default(TypeDescriptor))
+        public Maybe<SysTypeConverter> TypeConverter
         {
-            if (maximumItems == null) throw new ArgumentNullException("maximumItems");
+            get { return this.typeConverter; }
+        }
 
-            return new TypeDescriptor(tag, maximumItems, next.ToMaybe());
+        public static TypeDescriptor Create(
+            TargetType              tag,
+            Maybe<int>              maximumItems,
+            TypeDescriptor          nextValue = default(TypeDescriptor),
+            Maybe<SysTypeConverter> typeConverter = default(Maybe<SysTypeConverter>))
+        {
+            if (maximumItems == null)
+                throw new ArgumentNullException("maximumItems");
+
+            return new TypeDescriptor(tag, maximumItems, nextValue.ToMaybe(), typeConverter??Maybe.Nothing<SysTypeConverter>());
         }
     }
 
@@ -45,7 +63,11 @@ namespace CommandLine.Core
     {
         public static TypeDescriptor WithNextValue(this TypeDescriptor descriptor, Maybe<TypeDescriptor> nextValue)
         {
-            return TypeDescriptor.Create(descriptor.TargetType, descriptor.MaxItems, nextValue.GetValueOrDefault(default(TypeDescriptor)));
+            return TypeDescriptor.Create(
+                descriptor.TargetType,
+                descriptor.MaxItems,
+                nextValue.GetValueOrDefault(default(TypeDescriptor)),
+                descriptor.TypeConverter);
         }
     }
 }

@@ -15,6 +15,7 @@ namespace CommandLine
         private Infrastructure.LocalizableAttributeProperty helpText;
         private string metaValue;
         private Type resourceType;
+        private Type typeConverter;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="CommandLine.BaseAttribute"/> class.
@@ -132,6 +133,21 @@ namespace CommandLine
             {
                 resourceType =
                 helpText.ResourceType = value;
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets specific type of <see cref="System.ComponentModel.TypeConverter"/> to convert to and from strings 
+        /// </summary>
+        /// <exception cref="ArgumentException" accessor="set">Not a Valid TypeConverter</exception>
+        public Type TypeConverter
+        {
+            get { return typeConverter; }
+            set
+            {
+                if (!typeof(System.ComponentModel.TypeConverter).IsAssignableFrom(value))
+                    throw new ArgumentException("Not a Valid TypeConverter", nameof(value));
+                typeConverter = helpText.TypeConverter = value;
             }
         }
     }

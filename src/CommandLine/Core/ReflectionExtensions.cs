@@ -8,7 +8,6 @@ using System.Reflection;
 using CommandLine.Infrastructure;
 using CommandLine.Text;
 using CSharpx;
-
 using SystemTypeConverter = System.ComponentModel.TypeConverter;
 
 namespace CommandLine.Core
@@ -226,10 +225,10 @@ namespace CommandLine.Core
             return ctor != null;
         }
 
-        public static bool HasCustomConverter(this Type type, out SystemTypeConverter converter)
+        public static bool HasCustomConverter(this Type type)//, out SystemTypeConverter converter)
         {
-            converter = System.ComponentModel.TypeDescriptor.GetConverter(type);
-            return !ReferenceEquals(converter, null) && converter.CanConvertFrom(typeof(string));
+            //converter = GetConverter(type);
+            return false;// !ReferenceEquals(converter, null) && converter.CanConvertFrom(typeof(string));
         }
     }
 }

@@ -7,6 +7,8 @@ using System.Reflection;
 using CommandLine.Infrastructure;
 using CSharpx;
 
+using SysTypeConverter = System.ComponentModel.TypeConverter;
+
 namespace CommandLine.Core
 {
     enum SpecificationType
@@ -36,22 +38,24 @@ namespace CommandLine.Core
         /// This information is denormalized to decouple Specification from PropertyInfo.
         private readonly Type conversionType;
         private readonly TargetType targetType;
+        private readonly Maybe<Type> typeConverter;
 
         protected Specification(SpecificationType tag, bool required, Maybe<int> min, Maybe<int> max,
             Maybe<object> defaultValue, string helpText, string metaValue, IEnumerable<string> enumValues,
-            Type conversionType, TargetType targetType, bool hidden = false)
+            Type conversionType, TargetType targetType, bool hidden = false, Maybe<Type> typeConverter = default(Maybe<Type>))
         {
-            this.tag = tag;
-            this.required = required;
-            this.min = min;
-            this.max = max;
-            this.defaultValue = defaultValue;
+            this.tag            = tag;
+            this.required       = required;
+            this.min            = min;
+            this.max            = max;
+            this.defaultValue   = defaultValue;
             this.conversionType = conversionType;
-            this.targetType = targetType;
-            this.helpText = helpText;
-            this.metaValue = metaValue;
-            this.enumValues = enumValues;
-            this.hidden = hidden;
+            this.targetType     = targetType;
+            this.typeConverter  = typeConverter ?? Maybe.Nothing<Type>();
+            this.helpText       = helpText;
+            this.metaValue      = metaValue;
+            this.enumValues     = enumValues;
+            this.hidden         = hidden;
         }
 
         public SpecificationType Tag 
@@ -104,9 +108,29 @@ namespace CommandLine.Core
             get { return targetType; }
         }
 
+        public Maybe<Type> TypeConverter
+        {
+            get { return typeConverter; }
+        }
+
         public bool Hidden
         {
             get { return hidden; }
+        }
+
+        public Maybe<SysTypeConverter> GetConverter(bool useAppDomainTypeConverters)
+        {
+            var fallback = (!useAppDomainTypeConverters || ConversionType is null
+                ? null
+                : System.ComponentModel.TypeDescriptor.GetConverter(ConversionType)) as SysTypeConverter;
+
+            if (typeConverter.IsJust())
+            {
+                var ctor    = conversionType.GetTypeInfo().GetConstructor(Type.EmptyTypes);
+                var sysConv = ctor?.Invoke(new object[0]) as SysTypeConverter;
+                return (sysConv ?? fallback).ToMaybe();
+            }
+            return fallback.ToMaybe();
         }
 
         public static Specification FromProperty(PropertyInfo property)

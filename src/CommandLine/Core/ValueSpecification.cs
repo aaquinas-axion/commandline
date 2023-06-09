@@ -13,8 +13,8 @@ namespace CommandLine.Core
 
         public ValueSpecification(int index, string metaName, bool required, Maybe<int> min, Maybe<int> max, Maybe<object> defaultValue,
             string helpText, string metaValue, IEnumerable<string> enumValues,
-            Type conversionType, TargetType targetType, bool hidden = false)
-            : base(SpecificationType.Value, required, min, max, defaultValue, helpText, metaValue, enumValues, conversionType, targetType, hidden)
+            Type conversionType, TargetType targetType, bool hidden = false, Maybe<Type> typeConverter = default(Maybe<Type>))
+            : base(SpecificationType.Value, required, min, max, defaultValue, helpText, metaValue, enumValues, conversionType, targetType, hidden, typeConverter)
         {
             this.index = index;
             this.metaName = metaName;
@@ -26,15 +26,20 @@ namespace CommandLine.Core
                 attribute.Index,
                 attribute.MetaName,
                 attribute.Required,
-                attribute.Min == -1 ? Maybe.Nothing<int>() : Maybe.Just(attribute.Min),
-                attribute.Max == -1 ? Maybe.Nothing<int>() : Maybe.Just(attribute.Max),
+                attribute.Min == -1
+                    ? Maybe.Nothing<int>()
+                    : Maybe.Just(attribute.Min),
+                attribute.Max == -1
+                    ? Maybe.Nothing<int>()
+                    : Maybe.Just(attribute.Max),
                 attribute.Default.ToMaybe(),
                 attribute.HelpText,
                 attribute.MetaValue,
                 enumValues,
                 conversionType,
                 conversionType.ToTargetType(),
-                attribute.Hidden);
+                attribute.Hidden,
+                attribute.TypeConverter.ToMaybe());
         }
 
         public int Index

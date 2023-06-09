@@ -8,6 +8,7 @@ namespace CommandLine.Infrastructure
         private string _propertyName;
         private string _value;
         private Type _type;
+        private Type _typeConverter;
         private PropertyInfo _localizationPropertyInfo;
 
         public LocalizableAttributeProperty(string propertyName)
@@ -31,6 +32,15 @@ namespace CommandLine.Infrastructure
             {
                 _localizationPropertyInfo = null;
                 _type = value;
+            }
+        }
+
+        public Type TypeConverter
+        {
+            set
+            {
+                _localizationPropertyInfo = null;
+                _typeConverter = value;
             }
         }
 

@@ -14,10 +14,10 @@ namespace CommandLine
     {
         private readonly string longName;
         private readonly string shortName;
-        private string setName;
-        private bool flagCounter;
-        private char separator;
-        private string group=string.Empty;
+        private          string setName;
+        private          bool   flagCounter;
+        private          char   separator;
+        private          string group =string.Empty;
 
         private OptionAttribute(string shortName, string longName) : base()
         {

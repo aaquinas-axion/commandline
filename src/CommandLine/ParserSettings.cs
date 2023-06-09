@@ -16,18 +16,19 @@ namespace CommandLine
     {
         private const int DefaultMaximumLength = 80; // default console width
 
-        private bool disposed;
-        private bool caseSensitive;
-        private bool caseInsensitiveEnumValues;
-        private TextWriter helpWriter;
-        private bool ignoreUnknownArguments;
-        private bool autoHelp;
-        private bool autoVersion;
+        private bool        disposed;
+        private bool        caseSensitive;
+        private bool        caseInsensitiveEnumValues;
+        private TextWriter  helpWriter;
+        private bool        ignoreUnknownArguments;
+        private bool        autoHelp;
+        private bool        autoVersion;
         private CultureInfo parsingCulture;
         private Maybe<bool> enableDashDash;
-        private int maximumDisplayWidth;
+        private int         maximumDisplayWidth;
         private Maybe<bool> allowMultiInstance;
-        private bool getoptMode;
+        private bool        getoptMode;
+        private bool        useAppDomainTypeConverters;
         private Maybe<bool> posixlyCorrect;
 
         /// <summary>
@@ -42,6 +43,7 @@ namespace CommandLine
             parsingCulture = CultureInfo.InvariantCulture;
             maximumDisplayWidth = GetWindowWidth();
             getoptMode = false;
+            useAppDomainTypeConverters = false;
             enableDashDash = Maybe.Nothing<bool>();
             allowMultiInstance = Maybe.Nothing<bool>();
             posixlyCorrect = Maybe.Nothing<bool>();
@@ -200,6 +202,15 @@ namespace CommandLine
         {
             get => getoptMode;
             set => PopsicleSetter.Set(Consumed, ref getoptMode, value);
+        }
+
+        /// <summary>
+        /// Whether to use System.ComponentModel.TypeDescriptor.GetConverter() to convert instance types
+        /// </summary>
+        public bool UseAppDomainTypeConverters
+        {
+            get => useAppDomainTypeConverters;
+            set => PopsicleSetter.Set(Consumed, ref useAppDomainTypeConverters, value); 
         }
 
         /// <summary>
