@@ -6,6 +6,8 @@ using System.Linq;
 using CSharpx;
 using RailwaySharp.ErrorHandling;
 
+using SysTypeConverter = System.ComponentModel.TypeConverter;
+
 namespace CommandLine.Core
 {
     static class OptionMapper
@@ -13,10 +15,11 @@ namespace CommandLine.Core
         public static Result<
                 IEnumerable<SpecificationProperty>, Error>
             MapValues(
-                IEnumerable<SpecificationProperty> propertyTuples,
-                IEnumerable<KeyValuePair<string, IEnumerable<string>>> options,
-                Func<IEnumerable<string>, Type, bool, bool, Maybe<object>> converter,
-                StringComparer comparer)
+                IEnumerable<SpecificationProperty>                                  propertyTuples,
+                IEnumerable<KeyValuePair<string, IEnumerable<string>>>              options,
+                bool                                                                useAppDomainTypeConverters, 
+                Func<IEnumerable<string>, Type, Maybe<SysTypeConverter>, bool, bool, Maybe<object>> converter,
+                StringComparer                                                      comparer)
         {
             var sequencesAndErrors = propertyTuples
                 .Select(
@@ -38,7 +41,11 @@ namespace CommandLine.Core
 
                             bool isFlag = pt.Specification.Tag == SpecificationType.Option && ((OptionSpecification)pt.Specification).FlagCounter;
 
-                            return converter(values, isFlag ? typeof(bool) : pt.Property.PropertyType, pt.Specification.TargetType != TargetType.Sequence, isFlag)
+                            return converter(
+                                       values, 
+                                       isFlag ? typeof(bool) : pt.Property.PropertyType, 
+                                       pt.Specification.GetConverter(useAppDomainTypeConverters),
+                                       pt.Specification.TargetType != TargetType.Sequence, isFlag)
                                 .Select(value => Tuple.Create(pt.WithValue(Maybe.Just(value)), Maybe.Nothing<Error>()))
                                 .GetValueOrDefault(
                                     Tuple.Create<SpecificationProperty, Maybe<Error>>(

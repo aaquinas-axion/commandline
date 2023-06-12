@@ -102,7 +102,8 @@ namespace CommandLine
                     settings.AutoHelp,
                     settings.AutoVersion,
                     settings.AllowMultiInstance,
-                    HandleUnknownArguments(settings.IgnoreUnknownArguments)),
+                    HandleUnknownArguments(settings.IgnoreUnknownArguments),
+                    settings.UseAppDomainTypeConverters),
                 settings);
         }
 
@@ -133,7 +134,8 @@ namespace CommandLine
                     settings.AutoHelp,
                     settings.AutoVersion,
                     settings.AllowMultiInstance,
-                    HandleUnknownArguments(settings.IgnoreUnknownArguments)),
+                    HandleUnknownArguments(settings.IgnoreUnknownArguments),
+                    settings.UseAppDomainTypeConverters),
                 settings);
         }
 
@@ -166,7 +168,8 @@ namespace CommandLine
                     settings.AutoHelp,
                     settings.AutoVersion,
                     settings.AllowMultiInstance,
-                    HandleUnknownArguments(settings.IgnoreUnknownArguments)),
+                    HandleUnknownArguments(settings.IgnoreUnknownArguments),
+                    settings.UseAppDomainTypeConverters),
                 settings);
         }
 

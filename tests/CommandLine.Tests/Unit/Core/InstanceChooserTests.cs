@@ -28,7 +28,8 @@ namespace CommandLine.Tests.Unit.Core
                 true,
                 true,
                 multiInstance,
-                Enumerable.Empty<ErrorType>());
+                Enumerable.Empty<ErrorType>(),
+                false);
         }
 
         [Fact]

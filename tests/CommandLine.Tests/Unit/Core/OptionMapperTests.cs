@@ -13,6 +13,8 @@ using RailwaySharp.ErrorHandling;
 using CommandLine.Core;
 using CommandLine.Tests.Fakes;
 
+using SysTypeConverter = System.ComponentModel.TypeConverter;
+
 namespace CommandLine.Tests.Unit.Core
 {
     public class OptionMapperTests
@@ -37,9 +39,9 @@ namespace CommandLine.Tests.Unit.Core
             var result = OptionMapper.MapValues(
                 specProps.Where(pt => pt.Specification.IsOption()),
                 tokenPartitions,
-                (vals, type, isScalar, isFlag) => TypeConverter.ChangeType(vals, type, isScalar, isFlag, CultureInfo.InvariantCulture, false),
-                StringComparer.Ordinal
-                );
+                false,
+                (vals, type, converter, isScalar, isFlag) => TypeConverter.ChangeType(vals, type, isScalar, isFlag, CultureInfo.InvariantCulture, false, converter),
+                StringComparer.Ordinal);
 
             // Verify outcome
             Assert.NotNull(((Ok<IEnumerable<SpecificationProperty>, Error>)result).Success.Single(
@@ -72,7 +74,8 @@ namespace CommandLine.Tests.Unit.Core
             var result = OptionMapper.MapValues(
                 specProps.Where(pt => pt.Specification.IsOption()),
                 tokenPartitions,
-                (vals, type, isScalar, isFlag) => TypeConverter.ChangeType(vals, type, isScalar, isFlag, CultureInfo.InvariantCulture, false),
+                false,
+                (vals, type, converter, isScalar, isFlag) => TypeConverter.ChangeType(vals, type, isScalar, isFlag, CultureInfo.InvariantCulture, false, converter),
                 StringComparer.Ordinal);
 
             var property = result.SucceededWith().Single();
@@ -101,7 +104,8 @@ namespace CommandLine.Tests.Unit.Core
             var result = OptionMapper.MapValues(
                 specProps.Where(pt => pt.Specification.IsOption()),
                 tokenPartitions,
-                (vals, type, isScalar, isFlag) => TypeConverter.ChangeType(vals, type, isScalar, isFlag, CultureInfo.InvariantCulture, false),
+                false,
+                (vals, type, converter, isScalar, isFlag) => TypeConverter.ChangeType(vals, type, isScalar, isFlag, CultureInfo.InvariantCulture, false, converter),
                 StringComparer.Ordinal);
 
             var property = result.SucceededWith().Single();

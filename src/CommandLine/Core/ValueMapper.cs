@@ -6,6 +6,7 @@ using System.Linq;
 using CommandLine.Infrastructure;
 using CSharpx;
 using RailwaySharp.ErrorHandling;
+using SysTypeConverter = System.ComponentModel.TypeConverter;
 
 namespace CommandLine.Core
 {
@@ -15,10 +16,11 @@ namespace CommandLine.Core
             IEnumerable<SpecificationProperty>, Error>
             MapValues(
                 IEnumerable<SpecificationProperty> specProps,
-                IEnumerable<string> values,
-                Func<IEnumerable<string>, Type, bool, Maybe<object>> converter)
+                IEnumerable<string>                values,
+                bool                               useAppDomainTypeConverters,
+                Func<IEnumerable<string>, Type, Maybe<SysTypeConverter>, bool, Maybe<object>> converter)
         {
-            var propAndErrors = MapValuesImpl(specProps, values, converter);
+            var propAndErrors = MapValuesImpl(specProps, values, useAppDomainTypeConverters, converter);
 
             return Result.Succeed(
                 propAndErrors.Select(pe => pe.Item1),
@@ -29,8 +31,9 @@ namespace CommandLine.Core
 
         private static IEnumerable<Tuple<SpecificationProperty, Maybe<Error>>> MapValuesImpl(
             IEnumerable<SpecificationProperty> specProps,
-            IEnumerable<string> values,
-            Func<IEnumerable<string>, Type, bool, Maybe<object>> converter)
+            IEnumerable<string>                values,
+            bool                               useAppDomainTypeConverters,
+            Func<IEnumerable<string>, Type, Maybe<SysTypeConverter>, bool, Maybe<object>> converter)
         {
             if (specProps.Empty())
             {
@@ -57,13 +60,17 @@ namespace CommandLine.Core
             }
 
             yield return
-                converter(taken, pt.Property.PropertyType, pt.Specification.TargetType != TargetType.Sequence)
+                converter(
+                        taken,
+                        pt.Property.PropertyType,
+                        pt.Specification.GetConverter(useAppDomainTypeConverters),
+                        pt.Specification.TargetType != TargetType.Sequence)
                     .MapValueOrDefault(
                         converted => Tuple.Create(pt.WithValue(Maybe.Just(converted)), Maybe.Nothing<Error>()),
                         Tuple.Create<SpecificationProperty, Maybe<Error>>(
                             pt, Maybe.Just<Error>(new BadFormatConversionError(NameInfo.EmptyName))));
          
-            foreach (var value in MapValuesImpl(specProps.Skip(1), values.Skip(taken.Count()), converter))
+            foreach (var value in MapValuesImpl(specProps.Skip(1), values.Skip(taken.Count()), useAppDomainTypeConverters, converter))
             {
                 yield return value;
             }

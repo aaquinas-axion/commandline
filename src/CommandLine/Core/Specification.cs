@@ -120,17 +120,33 @@ namespace CommandLine.Core
 
         public Maybe<SysTypeConverter> GetConverter(bool useAppDomainTypeConverters)
         {
-            var fallback = (!useAppDomainTypeConverters || ConversionType is null
+            SysTypeConverter result = (!useAppDomainTypeConverters || ConversionType is null
                 ? null
                 : System.ComponentModel.TypeDescriptor.GetConverter(ConversionType)) as SysTypeConverter;
 
             if (typeConverter.IsJust())
             {
-                var ctor    = conversionType.GetTypeInfo().GetConstructor(Type.EmptyTypes);
-                var sysConv = ctor?.Invoke(new object[0]) as SysTypeConverter;
-                return (sysConv ?? fallback).ToMaybe();
+                var convType = TypeConverter.FromJust();
+                var info     = convType.GetTypeInfo();
+                var ctor     = info.GetConstructor(Type.EmptyTypes);
+                var sysConv  = ctor?.Invoke(new object[0]) as SysTypeConverter;
+                if (!(sysConv is null || !sysConv.CanConvertFrom(typeof(string))))
+                    result = sysConv;
+                else
+                {
+                    try
+                    {
+                        result = (Activator.CreateInstance(convType) as SysTypeConverter) ?? result;
+                    }
+                    catch (TargetInvocationException)
+                    { }
+                }
+                    
             }
-            return fallback.ToMaybe();
+
+            if ((result is null || !result.CanConvertFrom(typeof(string))))
+                return Maybe.Nothing<SysTypeConverter>();
+            return result.ToMaybe();
         }
 
         public static Specification FromProperty(PropertyInfo property)

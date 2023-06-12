@@ -9,20 +9,22 @@ using CSharpx;
 using RailwaySharp.ErrorHandling;
 using System.Reflection;
 
+using SysTypeConverter = System.ComponentModel.TypeConverter;
+
 namespace CommandLine.Core
 {
     static class TypeConverter
     {
-        public static Maybe<object> ChangeType(IEnumerable<string> values, Type conversionType, bool scalar, bool isFlag, CultureInfo conversionCulture, bool ignoreValueCase)
+        public static Maybe<object> ChangeType(IEnumerable<string> values, Type conversionType, bool scalar, bool isFlag, CultureInfo conversionCulture, bool ignoreValueCase, Maybe<SysTypeConverter> customTypeConverter = null)
         {
             return isFlag
-                ? ChangeTypeFlagCounter(values, conversionType, conversionCulture, ignoreValueCase)
+                ? ChangeTypeFlagCounter(values, conversionType, conversionCulture, ignoreValueCase, customTypeConverter)
                 : scalar
-                    ? ChangeTypeScalar(values.Last(), conversionType, conversionCulture, ignoreValueCase)
-                    : ChangeTypeSequence(values, conversionType, conversionCulture, ignoreValueCase);
+                    ? ChangeTypeScalar(values.Last(), conversionType, conversionCulture, ignoreValueCase, customTypeConverter)
+                    : ChangeTypeSequence(values, conversionType, conversionCulture, ignoreValueCase, customTypeConverter);
         }
 
-        private static Maybe<object> ChangeTypeSequence(IEnumerable<string> values, Type conversionType, CultureInfo conversionCulture, bool ignoreValueCase)
+        private static Maybe<object> ChangeTypeSequence(IEnumerable<string> values, Type conversionType, CultureInfo conversionCulture, bool ignoreValueCase, Maybe<SysTypeConverter> customTypeConverter= null)
         {
             var type =
                 conversionType.GetTypeInfo()
@@ -33,24 +35,24 @@ namespace CommandLine.Core
                                   new InvalidOperationException("Non scalar properties should be sequence of type IEnumerable<T>.")
                     );
 
-            var converted = values.Select(value => ChangeTypeScalar(value, type, conversionCulture, ignoreValueCase));
+            var converted = values.Select(value => ChangeTypeScalar(value, type, conversionCulture, ignoreValueCase, customTypeConverter));
 
             return converted.Any(a => a.MatchNothing())
                 ? Maybe.Nothing<object>()
                 : Maybe.Just(converted.Select(c => ((Just<object>)c).Value).ToUntypedArray(type));
         }
 
-        private static Maybe<object> ChangeTypeScalar(string value, Type conversionType, CultureInfo conversionCulture, bool ignoreValueCase)
+        private static Maybe<object> ChangeTypeScalar(string value, Type conversionType, CultureInfo conversionCulture, bool ignoreValueCase, Maybe<SysTypeConverter> customTypeConverter= null)
         {
-            var result = ChangeTypeScalarImpl(value, conversionType, conversionCulture, ignoreValueCase);
+            var result = ChangeTypeScalarImpl(value, conversionType, conversionCulture, ignoreValueCase, customTypeConverter);
             result.Match((_,__) => { }, e => e.First().RethrowWhenAbsentIn(
                 new[] { typeof(InvalidCastException), typeof(FormatException), typeof(OverflowException) }));
             return result.ToMaybe();
         }
 
-        private static Maybe<object> ChangeTypeFlagCounter(IEnumerable<string> values, Type conversionType, CultureInfo conversionCulture, bool ignoreValueCase)
+        private static Maybe<object> ChangeTypeFlagCounter(IEnumerable<string> values, Type conversionType, CultureInfo conversionCulture, bool ignoreValueCase, Maybe<SysTypeConverter> customTypeConverter = null)
         {
-            var converted = values.Select(value => ChangeTypeScalar(value, typeof(bool), conversionCulture, ignoreValueCase));
+            var converted = values.Select(value => ChangeTypeScalar(value, typeof(bool), conversionCulture, ignoreValueCase, customTypeConverter));
             return converted.Any(maybe => maybe.MatchNothing())
                 ? Maybe.Nothing<object>()
                 : Maybe.Just((object)converted.Count(value => value.IsJust()));
@@ -69,8 +71,10 @@ namespace CommandLine.Core
             }
         }
 
-        private static Result<object, Exception> ChangeTypeScalarImpl(string value, Type conversionType, CultureInfo conversionCulture, bool ignoreValueCase)
+        private static Result<object, Exception> ChangeTypeScalarImpl(string value, Type conversionType, CultureInfo conversionCulture, bool ignoreValueCase, Maybe<SysTypeConverter> customTypeConverter= null)
         {
+            
+
             Func<object> changeType = () =>
             {
                 Func<object> safeChangeType = () =>
@@ -120,8 +124,13 @@ namespace CommandLine.Core
                     throw new FormatException("Destination conversion type must have a constructor that accepts a string.");
                 }
             };
-
-            if (conversionType.IsCustomStruct()) return Result.Try(makeType);
+            
+            SysTypeConverter
+                typeConverter;
+            if (customTypeConverter.IsJust() && (typeConverter = customTypeConverter.FromJust()).CanConvertFrom(typeof(string)) )
+                return Result.Try(() => typeConverter.ConvertFrom(value));
+            if (conversionType.IsCustomStruct()) 
+                return Result.Try(makeType);
             return Result.Try(
                 conversionType.IsPrimitiveEx() || ReflectionHelper.IsFSharpOptionType(conversionType)
                     ? changeType

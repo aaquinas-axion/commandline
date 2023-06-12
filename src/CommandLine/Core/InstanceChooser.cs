@@ -21,7 +21,8 @@ namespace CommandLine.Core
             CultureInfo parsingCulture,
             bool autoHelp,
             bool autoVersion,
-            IEnumerable<ErrorType> nonFatalErrors)
+            IEnumerable<ErrorType> nonFatalErrors,
+            bool useAppDomainTypeConverters, Type customTypeConverterType = null)
         {
             return Choose(
                 tokenizer,
@@ -33,7 +34,8 @@ namespace CommandLine.Core
                 autoHelp,
                 autoVersion,
                 false,
-                nonFatalErrors);
+                nonFatalErrors,
+                useAppDomainTypeConverters);
         }
 
         public static ParserResult<object> Choose(
@@ -46,7 +48,8 @@ namespace CommandLine.Core
             bool autoHelp,
             bool autoVersion,
             bool allowMultiInstance,
-            IEnumerable<ErrorType> nonFatalErrors)
+            IEnumerable<ErrorType> nonFatalErrors,
+            bool useAppDomainTypeConverters, Type customTypeConverterType = null)
         {
             var verbs = Verb.SelectFromTypes(types);
             var defaultVerbs = verbs.Where(t => t.Item1.IsDefault);
@@ -71,13 +74,13 @@ namespace CommandLine.Core
                             arguments.Skip(1).FirstOrDefault() ?? string.Empty, nameComparer))
                     : (autoVersion && preprocCompare("version"))
                         ? MakeNotParsed(types, new VersionRequestedError())
-                        : MatchVerb(tokenizer, verbs, defaultVerb, arguments, nameComparer, ignoreValueCase, parsingCulture, autoHelp, autoVersion, allowMultiInstance, nonFatalErrors);
+                        : MatchVerb(tokenizer, verbs, defaultVerb, arguments, nameComparer, ignoreValueCase, parsingCulture, autoHelp, autoVersion, allowMultiInstance, nonFatalErrors, useAppDomainTypeConverters);
             }
 
             return arguments.Any()
                 ? choose()
                 : (defaultVerbCount == 1
-                    ? MatchDefaultVerb(tokenizer, verbs, defaultVerb, arguments, nameComparer, ignoreValueCase, parsingCulture, autoHelp, autoVersion, nonFatalErrors)
+                    ? MatchDefaultVerb(tokenizer, verbs, defaultVerb, arguments, nameComparer, ignoreValueCase, parsingCulture, autoHelp, autoVersion, nonFatalErrors, useAppDomainTypeConverters)
                     : MakeNotParsed(types, new NoVerbSelectedError()));
         }
 
@@ -91,7 +94,8 @@ namespace CommandLine.Core
             CultureInfo parsingCulture,
             bool autoHelp,
             bool autoVersion,
-            IEnumerable<ErrorType> nonFatalErrors)
+            IEnumerable<ErrorType> nonFatalErrors,
+            bool useAppDomainTypeConverters, Type customTypeConverterType = null)
         {
             return !(defaultVerb is null)
                 ? InstanceBuilder.Build(
@@ -103,7 +107,8 @@ namespace CommandLine.Core
                     parsingCulture,
                     autoHelp,
                     autoVersion,
-                    nonFatalErrors)
+                    nonFatalErrors,
+                    useAppDomainTypeConverters)
                 : MakeNotParsed(verbs.Select(v => v.Item2), new BadVerbSelectedError(arguments.First()));
         }
 
@@ -118,7 +123,8 @@ namespace CommandLine.Core
             bool autoHelp,
             bool autoVersion,
             bool allowMultiInstance,
-            IEnumerable<ErrorType> nonFatalErrors)
+            IEnumerable<ErrorType> nonFatalErrors,
+            bool useAppDomainTypeConverters, Type customTypeConverterType = null)
         {
             string firstArg = arguments.First();
 
@@ -129,7 +135,7 @@ namespace CommandLine.Core
 
             if (verbUsed == default)
             {
-                return MatchDefaultVerb(tokenizer, verbs, defaultVerb, arguments, nameComparer, ignoreValueCase, parsingCulture, autoHelp, autoVersion, nonFatalErrors);
+                return MatchDefaultVerb(tokenizer, verbs, defaultVerb, arguments, nameComparer, ignoreValueCase, parsingCulture, autoHelp, autoVersion, nonFatalErrors, useAppDomainTypeConverters);
             }
             return InstanceBuilder.Build(
                 Maybe.Just<Func<object>>(
@@ -142,7 +148,8 @@ namespace CommandLine.Core
                 autoHelp,
                 autoVersion,
                 allowMultiInstance,                
-                nonFatalErrors);
+                nonFatalErrors,
+                useAppDomainTypeConverters);
         }
 
         private static HelpVerbRequestedError MakeHelpVerbRequestedError(

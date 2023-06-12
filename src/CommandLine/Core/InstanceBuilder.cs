@@ -22,7 +22,8 @@ namespace CommandLine.Core
             CultureInfo parsingCulture,
             bool autoHelp,
             bool autoVersion,
-            IEnumerable<ErrorType> nonFatalErrors)
+            IEnumerable<ErrorType> nonFatalErrors,
+            bool useAppDomainTypeConverters, Type customTypeConverterType = null)
         {
             return Build(
                 factory,
@@ -34,7 +35,8 @@ namespace CommandLine.Core
                 autoHelp,
                 autoVersion,
                 false,
-                nonFatalErrors);
+                nonFatalErrors,
+                useAppDomainTypeConverters);
         }
 
         public static ParserResult<T> Build<T>(
@@ -47,7 +49,9 @@ namespace CommandLine.Core
             bool autoHelp,
             bool autoVersion,
             bool allowMultiInstance,
-            IEnumerable<ErrorType> nonFatalErrors)        {
+            IEnumerable<ErrorType> nonFatalErrors,
+            bool useAppDomainTypeConverters, Type customTypeConverterType = null)        
+        {
             var typeInfo = factory.MapValueOrDefault(f => f().GetType(), typeof(T));
 
             var specProps = typeInfo.GetSpecifications(pi => SpecificationProperty.Create(
@@ -88,14 +92,16 @@ namespace CommandLine.Core
                     OptionMapper.MapValues(
                         (from pt in specProps where pt.Specification.IsOption() select pt),
                         optionsPartition,
-                        (vals, type, isScalar, isFlag) => TypeConverter.ChangeType(vals, type, isScalar, isFlag, parsingCulture, ignoreValueCase),
+                        useAppDomainTypeConverters,
+                            (vals, type, customConverter, isScalar, isFlag) => TypeConverter.ChangeType(vals, type, isScalar, isFlag, parsingCulture, ignoreValueCase, customConverter),
                         nameComparer);
 
                 var valueSpecPropsResult =
                     ValueMapper.MapValues(
                         (from pt in specProps where pt.Specification.IsValue() orderby ((ValueSpecification)pt.Specification).Index select pt),
                         valuesPartition,    
-                        (vals, type, isScalar) => TypeConverter.ChangeType(vals, type, isScalar, false, parsingCulture, ignoreValueCase));
+                        useAppDomainTypeConverters,
+                        (vals, type, customConverter, isScalar) => TypeConverter.ChangeType(vals, type, isScalar, false, parsingCulture, ignoreValueCase, customConverter));
 
                 var missingValueErrors = from token in errorsPartition
                                          select

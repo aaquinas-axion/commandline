@@ -19,7 +19,7 @@ namespace CommandLine.Tests.Unit.Core
 {
     public class InstanceBuilderTests
     {
-        private static ParserResult<T> InvokeBuild<T>(string[] arguments, bool autoHelp = true, bool autoVersion = true, bool multiInstance = false)
+        private static ParserResult<T> InvokeBuild<T>(string[] arguments, bool autoHelp = true, bool autoVersion = true, bool multiInstance = false, bool useAppDomainTypeConverters = false, Type customTypeConverterType = null)
             where T : new()
         {
             return InstanceBuilder.Build(
@@ -32,7 +32,8 @@ namespace CommandLine.Tests.Unit.Core
                 autoHelp,
                 autoVersion,
                 multiInstance,
-                Enumerable.Empty<ErrorType>());
+                Enumerable.Empty<ErrorType>(),
+                useAppDomainTypeConverters);
         }
 
         private static ParserResult<T> InvokeBuildEnumValuesCaseIgnore<T>(string[] arguments)
@@ -47,7 +48,8 @@ namespace CommandLine.Tests.Unit.Core
                 CultureInfo.InvariantCulture,
                 true,
                 true,
-                Enumerable.Empty<ErrorType>());
+                Enumerable.Empty<ErrorType>(),
+                false);
         }
 
         private static ParserResult<T> InvokeBuildImmutable<T>(string[] arguments)
@@ -61,7 +63,8 @@ namespace CommandLine.Tests.Unit.Core
                 CultureInfo.InvariantCulture,
                 true,
                 true,
-                Enumerable.Empty<ErrorType>());
+                Enumerable.Empty<ErrorType>(),
+                false);
         }
 
         [Fact]
@@ -421,7 +424,8 @@ namespace CommandLine.Tests.Unit.Core
                 CultureInfo.InvariantCulture,
                 true,
                 true,
-                Enumerable.Empty<ErrorType>());
+                Enumerable.Empty<ErrorType>(),
+                false);
 
             // Verify outcome
             expectedResult.Should().BeEquivalentTo(((Parsed<Simple_Options_With_Values>)result).Value);
@@ -1294,6 +1298,38 @@ namespace CommandLine.Tests.Unit.Core
 
             // Assert
             var customValue = ((Parsed<CustomClassOptions>)result).Value.Custom;
+            customValue.Server.Should().Be(expectedServer);
+            customValue.Port.Should().Be(expectedPort);
+            customValue.Input.Should().Be(arguments[1]);
+        }
+
+        [Theory]
+        [InlineData(new[] { "-c", "localhost:8080" }, "localhost", 8080)]
+        public void Parse_custom_struct_type_with_converter(string[] arguments, string expectedServer, int expectedPort)
+        {
+            //Arrange
+
+            // Act
+            var result = InvokeBuild<CustomStructOptionsForTypeConverter>(arguments);
+
+            // Assert
+            var customValue = ((Parsed<CustomStructOptionsForTypeConverter>)result).Value.Custom;
+            customValue.Server.Should().Be(expectedServer);
+            customValue.Port.Should().Be(expectedPort);
+            customValue.Input.Should().Be(arguments[1]);
+        }
+
+        [Theory]
+        [InlineData(new[] { "-c", "localhost:8080" }, "localhost", 8080)]
+        public void Parse_custom_class_type_with_converter(string[] arguments, string expectedServer, int expectedPort)
+        {
+            //Arrange
+
+            // Act
+            var result = InvokeBuild<CustomClassOptionsForTypeConverter>(arguments);
+
+            // Assert
+            var customValue = ((Parsed<CustomClassOptionsForTypeConverter>)result).Value.Custom;
             customValue.Server.Should().Be(expectedServer);
             customValue.Port.Should().Be(expectedPort);
             customValue.Input.Should().Be(arguments[1]);
