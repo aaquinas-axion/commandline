@@ -24,7 +24,7 @@ namespace CommandLine.Core
                                        var descr = TypeDescriptor.Create(
                                            first.TargetType,
                                            first.Max,
-                                           typeConverter: first.GetConverter(useAppDomainTypeConverters));
+                                           typeConverter: first.GetConverter(useAppDomainTypeConverters, comparer));
                                        var next = specifications
                                                  .SkipWhile(s => s.Equals(first))
                                                  .Take(1)
@@ -34,7 +34,7 @@ namespace CommandLine.Core
                                                       second => TypeDescriptor.Create(
                                                           second.TargetType,
                                                           second.Max,
-                                                          typeConverter: second.GetConverter(useAppDomainTypeConverters)));
+                                                          typeConverter: second.GetConverter(useAppDomainTypeConverters, comparer)));
                                        return descr.WithNextValue(next);
                                    });
             return info;

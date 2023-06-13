@@ -44,7 +44,7 @@ namespace CommandLine.Core
                             return converter(
                                        values, 
                                        isFlag ? typeof(bool) : pt.Property.PropertyType, 
-                                       pt.Specification.GetConverter(useAppDomainTypeConverters),
+                                       pt.Specification.GetConverter(useAppDomainTypeConverters, comparer),
                                        pt.Specification.TargetType != TargetType.Sequence, isFlag)
                                 .Select(value => Tuple.Create(pt.WithValue(Maybe.Just(value)), Maybe.Nothing<Error>()))
                                 .GetValueOrDefault(

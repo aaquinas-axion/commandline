@@ -2,6 +2,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
+using System.Globalization;
 using System.Linq;
 using System.Reflection;
 using CommandLine.Infrastructure;
@@ -118,11 +120,14 @@ namespace CommandLine.Core
             get { return hidden; }
         }
 
-        public Maybe<SysTypeConverter> GetConverter(bool useAppDomainTypeConverters)
+        public Maybe<SysTypeConverter> GetConverter(bool useAppDomainTypeConverters, StringComparer comparer)
         {
             SysTypeConverter result = (!useAppDomainTypeConverters || ConversionType is null
                 ? null
                 : System.ComponentModel.TypeDescriptor.GetConverter(ConversionType)) as SysTypeConverter;
+
+            if (!(result is null) && ConversionType.IsEnum && result?.GetType() == typeof(EnumConverter))
+                result = new CustomEnumConverter(ConversionType, comparer);
 
             if (typeConverter.IsJust())
             {

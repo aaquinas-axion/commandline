@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Globalization;
 using System.Linq;
 using CommandLine.Infrastructure;
@@ -73,8 +74,6 @@ namespace CommandLine.Core
 
         private static Result<object, Exception> ChangeTypeScalarImpl(string value, Type conversionType, CultureInfo conversionCulture, bool ignoreValueCase, Maybe<SysTypeConverter> customTypeConverter= null)
         {
-            
-
             Func<object> changeType = () =>
             {
                 Func<object> safeChangeType = () =>
@@ -124,20 +123,40 @@ namespace CommandLine.Core
                     throw new FormatException("Destination conversion type must have a constructor that accepts a string.");
                 }
             };
+
+
+            Func<object> useTypeConverter = () =>
+            {
+                SysTypeConverter
+                    typeConverter = customTypeConverter.FromJustOrFail();
+                if (!typeConverter.CanConvertFrom(typeof(string)))
+                    throw new InvalidOperationException("Converter can not convert from a string");
+                try
+                {
+                    return typeConverter.ConvertFrom(((ITypeDescriptorContext)null)!, conversionCulture, value);
+                }
+                catch (Exception exception)
+                {
+                    throw new FormatException($"Error converting from string \"{value}\"", exception);
+                }
+            };
+
             
-            SysTypeConverter
-                typeConverter;
-            if (customTypeConverter.IsJust() && (typeConverter = customTypeConverter.FromJust()).CanConvertFrom(typeof(string)) )
-                return Result.Try(() => typeConverter.ConvertFrom(value));
             if (conversionType.IsCustomStruct()) 
-                return Result.Try(makeType);
+            {  
+                return customTypeConverter.IsJust() 
+                    ? Result.Try(useTypeConverter)
+                    : Result.Try(makeType);
+            }
             return Result.Try(
                 conversionType.IsPrimitiveEx() || ReflectionHelper.IsFSharpOptionType(conversionType)
-                    ? changeType
+                    ?  customTypeConverter.IsJust() 
+                        ? useTypeConverter
+                        : changeType
                     : makeType);
         }
 
-        private static object ToEnum(this string value, Type conversionType, bool ignoreValueCase)
+        internal static object ToEnum(this string value, Type conversionType, bool ignoreValueCase)
         {
             object parsedValue;
             try
