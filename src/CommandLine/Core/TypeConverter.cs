@@ -133,7 +133,15 @@ namespace CommandLine.Core
                     throw new InvalidOperationException("Converter can not convert from a string");
                 try
                 {
-                    return typeConverter.ConvertFrom(((ITypeDescriptorContext)null)!, conversionCulture, value);
+                    //If the converter is the standard system Enum converter, we Use our own ToEnum to keep things consistent
+                    //if a user wants to override this, they need only provide a different converter or a sub-type of EnumConverter
+                    switch (typeConverter)
+                    {
+                        case EnumConverter stockEnumConverter when stockEnumConverter.GetType() == typeof(EnumConverter):
+                            return ToEnum(value, conversionType, ignoreValueCase);
+                        default:
+                            return typeConverter.ConvertFrom(((ITypeDescriptorContext)null)!, conversionCulture, value);
+                    }
                 }
                 catch (Exception exception)
                 {
@@ -150,7 +158,7 @@ namespace CommandLine.Core
             }
             return Result.Try(
                 conversionType.IsPrimitiveEx() || ReflectionHelper.IsFSharpOptionType(conversionType)
-                    ?  customTypeConverter.IsJust() && customTypeConverter.FromJust().CanConvertFrom(typeof(string))
+                    ?  customTypeConverter.IsJust() && customTypeConverter.FromJust().CanConvertFrom(typeof(string)) 
                         ? useTypeConverter
                         : changeType
                     : customTypeConverter.IsJust() && customTypeConverter.FromJust().CanConvertFrom(typeof(string))

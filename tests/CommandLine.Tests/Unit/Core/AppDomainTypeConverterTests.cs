@@ -1,17 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Globalization;
-using CommandLine.Core;
 using Xunit;
 using FluentAssertions;
 using CSharpx;
+using CommandLine.Core;
+
 using SysTypeConverter= System.ComponentModel.TypeConverter;
-using TypeConverter = CommandLine.Core.TypeConverter;
 
 namespace CommandLine.Tests.Unit.Core
 {
-    public class TypeConverterTests
+    public class AppDomainTypeConverterTests
     {
         enum TestEnum
         {
@@ -26,14 +25,12 @@ namespace CommandLine.Tests.Unit.Core
             ValueB = 0x2
         }
 
-
         [Theory]
         [MemberData(nameof(ChangeType_scalars_source))]
-        [Trait("Category", "TypeConverters")]
+
         public void ChangeType_scalars(string testValue, Type destinationType, bool expectFail, object expectedResult)
         {
-            SysTypeConverter converter = System.ComponentModel.TypeDescriptor.GetConverter(destinationType);
-            Maybe<object> result = TypeConverter.ChangeType(new[] {testValue}, destinationType, true, false, CultureInfo.InvariantCulture, true, Maybe.Just(converter));
+            Maybe<object> result = TypeConverter.ChangeType(new[] {testValue}, destinationType, true, false, CultureInfo.InvariantCulture, true, Maybe.Nothing<SysTypeConverter>());
 
             if (expectFail)
             {
@@ -129,11 +126,9 @@ namespace CommandLine.Tests.Unit.Core
 
         [Theory]
         [MemberData(nameof(ChangeType_flagCounters_source))]
-        [Trait("Category", "TypeConverters")]
         public void ChangeType_flagCounters(string[] testValue, Type destinationType, bool expectFail, object expectedResult)
         {
-            SysTypeConverter converter = System.ComponentModel.TypeDescriptor.GetConverter(typeof(bool));
-            Maybe<object> result = TypeConverter.ChangeType(testValue, destinationType, true, true, CultureInfo.InvariantCulture, true, Maybe.Just(converter));
+            Maybe<object> result = TypeConverter.ChangeType(testValue, destinationType, true, true, CultureInfo.InvariantCulture, true, Maybe.Nothing<SysTypeConverter>());
 
             if (expectFail)
             {
@@ -162,12 +157,10 @@ namespace CommandLine.Tests.Unit.Core
         }
 
         [Fact]
-        [Trait("Category", "TypeConverters")]
         public void ChangeType_Scalar_LastOneWins()
         {
-            SysTypeConverter converter = System.ComponentModel.TypeDescriptor.GetConverter(typeof(int));
             var values = new[] { "100", "200", "300", "400", "500" };
-            var result = TypeConverter.ChangeType(values, typeof(int), true, false, CultureInfo.InvariantCulture, true, Maybe.Just(converter));
+            var result = TypeConverter.ChangeType(values, typeof(int), true, false, CultureInfo.InvariantCulture, true, Maybe.Nothing<SysTypeConverter>());
             result.MatchJust(out var matchedValue).Should().BeTrue("should parse successfully");
             Assert.Equal(500, matchedValue);
 

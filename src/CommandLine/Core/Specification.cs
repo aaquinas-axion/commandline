@@ -122,33 +122,49 @@ namespace CommandLine.Core
             get { return hidden; }
         }
 
-        public Maybe<SysTypeConverter> GetConverter(bool useAppDomainTypeConverters, StringComparer comparer)
+        public Maybe<SysTypeConverter> GetConverter(bool useAppDomainTypeConverters)
         {
             SysTypeConverter result = (!useAppDomainTypeConverters || ConversionType is null
                 ? null
                 : System.ComponentModel.TypeDescriptor.GetConverter(ConversionType)) as SysTypeConverter;
 
-            if (!(result is null) && ConversionType.IsEnum && result?.GetType() == typeof(EnumConverter))
-                result = new CustomEnumConverter(ConversionType, comparer);
-
             if (typeConverter.IsJust())
             {
-                var convType = TypeConverter.FromJust();
-                var info     = convType.GetTypeInfo();
-                var ctor     = info.GetConstructor(Type.EmptyTypes);
-                var sysConv  = ctor?.Invoke(new object[0]) as SysTypeConverter;
-                if (!(sysConv is null || !sysConv.CanConvertFrom(typeof(string))))
-                    result = sysConv;
-                else
+                var convType  = TypeConverter.FromJust();
+                var info      = convType.GetTypeInfo();
+                var ctorEmpty = info.GetConstructor(Type.EmptyTypes);
+                var ctorType = info.GetConstructor(new Type[]{ typeof(Type) });
+                var ctorString = info.GetConstructor(new Type[]{ typeof(string) });
+
+                SysTypeConverter sysConv = null;
+
+                if (!(ctorType is null))
+                {
+                    sysConv = ctorType?.Invoke(new object[]{ConversionType}) as SysTypeConverter;
+                }
+                if ((sysConv is null) && !(ctorString is null))
+                {
+                    sysConv = ctorString?.Invoke(new object[]{ConversionType.FullName}) as SysTypeConverter;
+                }
+                if ((sysConv is null) && !(ctorEmpty is null))
+                {
+                    sysConv = ctorString?.Invoke(new object[]{}) as SysTypeConverter;
+                }
+                if (sysConv is null)
                 {
                     try
                     {
-                        result = (Activator.CreateInstance(convType) as SysTypeConverter) ?? result;
+                        sysConv = Activator.CreateInstance(convType) as SysTypeConverter;
                     }
                     catch (TargetInvocationException)
-                    { }
+                    {
+                        // If we get here, we just can't construct it
+                    }
                 }
-                    
+
+                result = !(sysConv is null || !sysConv.CanConvertFrom(typeof(string)))
+                    ? sysConv
+                    : null;
             }
 
             if ((result is null || !result.CanConvertFrom(typeof(string))))
@@ -192,7 +208,7 @@ namespace CommandLine.Core
 
             if (spec is null)
                 throw new InvalidOperationException();
-            var converter = spec.GetConverter(useAppDomainTypeConverters, comparer);
+            var converter = spec.GetConverter(useAppDomainTypeConverters);
 
             if (!converter.IsJust())
                 return spec;

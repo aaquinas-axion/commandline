@@ -23,7 +23,7 @@ namespace CommandLine.Core
             bool autoHelp,
             bool autoVersion,
             IEnumerable<ErrorType> nonFatalErrors,
-            bool useAppDomainTypeConverters, Type customTypeConverterType = null)
+            bool useAppDomainTypeConverters)
         {
             return Build(
                 factory,
@@ -50,8 +50,7 @@ namespace CommandLine.Core
             bool autoVersion,
             bool allowMultiInstance,
             IEnumerable<ErrorType> nonFatalErrors,
-            bool useAppDomainTypeConverters, 
-            Type customTypeConverterType = null)        
+            bool useAppDomainTypeConverters)        
         {
             var typeInfo = factory.MapValueOrDefault(f => f().GetType(), typeof(T));
 

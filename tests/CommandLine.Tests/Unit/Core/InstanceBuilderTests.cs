@@ -1,6 +1,5 @@
 // Copyright 2005-2015 Giacomo Stelluti Scala & Contributors. All rights reserved. See License.md in the project root for license information.
 
-using Microsoft.FSharp.Core;
 using CommandLine.Core;
 using CommandLine.Infrastructure;
 using CommandLine.Tests.Fakes;
@@ -19,7 +18,7 @@ namespace CommandLine.Tests.Unit.Core
 {
     public class InstanceBuilderTests
     {
-        private static ParserResult<T> InvokeBuild<T>(string[] arguments, bool autoHelp = true, bool autoVersion = true, bool multiInstance = false, bool useAppDomainTypeConverters = false, Type customTypeConverterType = null)
+        private static ParserResult<T> InvokeBuild<T>(string[] arguments, bool autoHelp = true, bool autoVersion = true, bool multiInstance = false, bool useAppDomainTypeConverters = false)
             where T : new()
         {
             return InstanceBuilder.Build(
@@ -33,8 +32,7 @@ namespace CommandLine.Tests.Unit.Core
                 autoVersion,
                 multiInstance,
                 Enumerable.Empty<ErrorType>(),
-                useAppDomainTypeConverters,
-                customTypeConverterType);
+                useAppDomainTypeConverters);
         }
 
         private static ParserResult<T> InvokeBuildEnumValuesCaseIgnore<T>(string[] arguments, bool useAppDomainTypeConverters = false)

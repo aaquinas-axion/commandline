@@ -63,7 +63,7 @@ namespace CommandLine.Core
                 converter(
                         taken,
                         pt.Property.PropertyType,
-                        pt.Specification.GetConverter(useAppDomainTypeConverters, StringComparer.InvariantCulture),
+                        pt.Specification.GetConverter(useAppDomainTypeConverters),
                         pt.Specification.TargetType != TargetType.Sequence)
                     .MapValueOrDefault(
                         converted => Tuple.Create(pt.WithValue(Maybe.Just(converted)), Maybe.Nothing<Error>()),
