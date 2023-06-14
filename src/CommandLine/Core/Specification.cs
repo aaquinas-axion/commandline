@@ -1,7 +1,9 @@
 ﻿// Copyright 2005-2015 Giacomo Stelluti Scala & Contributors. All rights reserved. See License.md in the project root for license information.
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Globalization;
 using System.Linq;
@@ -36,14 +38,14 @@ namespace CommandLine.Core
         private readonly Maybe<object> defaultValue;
         private readonly string helpText;
         private readonly string metaValue;
-        private readonly IEnumerable<string> enumValues;
+        private readonly IEnumerable<string> possibleValues;
         /// This information is denormalized to decouple Specification from PropertyInfo.
         private readonly Type conversionType;
         private readonly TargetType targetType;
         private readonly Maybe<Type> typeConverter;
 
         protected Specification(SpecificationType tag, bool required, Maybe<int> min, Maybe<int> max,
-            Maybe<object> defaultValue, string helpText, string metaValue, IEnumerable<string> enumValues,
+            Maybe<object> defaultValue, string helpText, string metaValue, IEnumerable<string> possibleValues,
             Type conversionType, TargetType targetType, bool hidden = false, Maybe<Type> typeConverter = default(Maybe<Type>))
         {
             this.tag            = tag;
@@ -56,7 +58,7 @@ namespace CommandLine.Core
             this.typeConverter  = typeConverter ?? Maybe.Nothing<Type>();
             this.helpText       = helpText;
             this.metaValue      = metaValue;
-            this.enumValues     = enumValues;
+            this.possibleValues = possibleValues;
             this.hidden         = hidden;
         }
 
@@ -95,9 +97,9 @@ namespace CommandLine.Core
             get { return metaValue; }
         }
 
-        public IEnumerable<string> EnumValues
+        public IEnumerable<string> PossibleValues
         {
-            get { return enumValues; }
+            get { return possibleValues; }
         }
 
         public Type ConversionType
@@ -154,32 +156,55 @@ namespace CommandLine.Core
             return result.ToMaybe();
         }
 
-        public static Specification FromProperty(PropertyInfo property)
+        public static Specification FromProperty(PropertyInfo property) =>
+            FromProperty(property, false, StringComparer.Ordinal);
+
+        public static Specification FromProperty(PropertyInfo property, bool useAppDomainTypeConverters, StringComparer comparer)
         {       
             var attrs = property.GetCustomAttributes(true);
-            var oa = attrs.OfType<OptionAttribute>();
+            var oa    = attrs.OfType<OptionAttribute>();
+            Specification spec  = null;
             if (oa.Count() == 1)
             {
-                var spec = OptionSpecification.FromAttribute(oa.Single(), property.PropertyType,
-                    ReflectionHelper.GetNamesOfEnum(property.PropertyType)); 
+                OptionSpecification ospec = OptionSpecification.FromAttribute(
+                    oa.Single(),
+                    property.PropertyType,
+                    ReflectionHelper.GetNamesOfEnum(property.PropertyType));
 
-                if (spec.ShortName.Length == 0 && spec.LongName.Length == 0)
+                if (ospec.ShortName.Length == 0 && ospec.LongName.Length == 0)
                 {
-                    return spec.WithLongName(property.Name.ToLowerInvariant());
+                    ospec = ospec.WithLongName(property.Name.ToLowerInvariant());
                 }
-                return spec;
+
+                spec = ospec;
             }
 
             var va = attrs.OfType<ValueAttribute>();
             if (va.Count() == 1)
             {
-                return ValueSpecification.FromAttribute(va.Single(), property.PropertyType,
+                spec = ValueSpecification.FromAttribute(va.Single(), property.PropertyType,
                     property.PropertyType.GetTypeInfo().IsEnum
                         ? Enum.GetNames(property.PropertyType)
                         : Enumerable.Empty<string>());
             }
+            if(spec is null)
+                throw new InvalidOperationException();
 
-            throw new InvalidOperationException();
+            if (spec is null)
+                throw new InvalidOperationException();
+            var converter = spec.GetConverter(useAppDomainTypeConverters, comparer);
+
+            if (!converter.IsJust())
+                return spec;
+            var conv = converter.FromJust();
+            if (!conv.CanConvertFrom(typeof(string)) || !conv.GetStandardValuesSupported())
+                return spec;
+            var standard = conv.GetStandardValues();
+            List<string> standardList = new List<string>();
+            foreach (object val in standard)
+                standardList.Add(val.ToString());
+
+            return spec.WithPossibleValues(standardList.AsReadOnly());
         }
     }
 }

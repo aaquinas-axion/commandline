@@ -12,9 +12,9 @@ namespace CommandLine.Core
         private readonly string metaName;
 
         public ValueSpecification(int index, string metaName, bool required, Maybe<int> min, Maybe<int> max, Maybe<object> defaultValue,
-            string helpText, string metaValue, IEnumerable<string> enumValues,
+            string helpText, string metaValue, IEnumerable<string> possibleValues,
             Type conversionType, TargetType targetType, bool hidden = false, Maybe<Type> typeConverter = default(Maybe<Type>))
-            : base(SpecificationType.Value, required, min, max, defaultValue, helpText, metaValue, enumValues, conversionType, targetType, hidden, typeConverter)
+            : base(SpecificationType.Value, required, min, max, defaultValue, helpText, metaValue, possibleValues, conversionType, targetType, hidden, typeConverter)
         {
             this.index = index;
             this.metaName = metaName;

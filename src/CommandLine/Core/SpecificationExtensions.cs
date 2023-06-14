@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using CSharpx;
 
@@ -32,13 +33,60 @@ namespace CommandLine.Core
                 specification.DefaultValue,
                 specification.HelpText,
                 specification.MetaValue,
-                specification.EnumValues,
+                specification.PossibleValues,
                 specification.ConversionType,
                 specification.TargetType,
                 specification.Group,
                 specification.FlagCounter,
                 specification.Hidden,
                 specification.TypeConverter);
+        }
+
+        public static Specification WithPossibleValues<tSpec>(
+            this tSpec                 specification,
+            ReadOnlyCollection<string> possibleValues)
+            where tSpec : Specification
+        {
+            switch (specification)
+            {
+                case OptionSpecification optionSpecification:
+                    return new OptionSpecification(
+                        optionSpecification.ShortName,
+                        optionSpecification.LongName,
+                        optionSpecification.Required,
+                        optionSpecification.SetName,
+                        optionSpecification.Min,
+                        optionSpecification.Max,
+                        optionSpecification.Separator,
+                        optionSpecification.DefaultValue,
+                        optionSpecification.HelpText,
+                        optionSpecification.MetaValue,
+                        possibleValues,
+                        optionSpecification.ConversionType,
+                        optionSpecification.TargetType,
+                        optionSpecification.Group,
+                        optionSpecification.FlagCounter,
+                        optionSpecification.Hidden,
+                        optionSpecification.TypeConverter);
+                case ValueSpecification valueSpecification:
+                    return new ValueSpecification(
+                        valueSpecification.Index,
+                        valueSpecification.MetaName,
+                        valueSpecification.Required,
+                        valueSpecification.Min,
+                        valueSpecification.Max,
+                        valueSpecification.DefaultValue,
+                        valueSpecification.HelpText,
+                        valueSpecification.MetaValue,
+                        possibleValues,
+                        valueSpecification.ConversionType,
+                        valueSpecification.TargetType,
+                        valueSpecification.Hidden,
+                        valueSpecification.TypeConverter);
+                default:
+                    throw new InvalidOperationException(
+                        $"Unknown Specification type: {specification.GetType().FullName}");
+            }
         }
 
         public static string UniqueName(this OptionSpecification specification)

@@ -137,7 +137,7 @@ namespace CommandLine
         }
 
         /// <summary>
-        /// Gets or sets specific type of <see cref="System.ComponentModel.TypeConverter"/> to convert to and from strings 
+        /// Gets or sets specific type of <see cref="System.ComponentModel.TypeConverter"/> to convert from strings 
         /// </summary>
         /// <exception cref="ArgumentException" accessor="set">Not a Valid TypeConverter</exception>
         public Type TypeConverter

@@ -99,19 +99,20 @@ namespace CommandLine.Text
         /// The total amount of extra space that needs to accounted for when indenting Option help text
         /// </summary>
         private const int TotalOptionPadding = OptionToHelpTextSeparatorWidth + OptionPrefixWidth;
-        private readonly StringBuilder preOptionsHelp;
-        private readonly StringBuilder postOptionsHelp;
+        private readonly StringBuilder   preOptionsHelp;
+        private readonly StringBuilder   postOptionsHelp;
         private readonly SentenceBuilder sentenceBuilder;
-        private int maximumDisplayWidth;
-        private string heading;
-        private string copyright;
-        private bool additionalNewLineAfterOption;
-        private StringBuilder optionsHelp;
-        private bool addDashesToOption;
-        private bool addEnumValuesToHelpText;
-        private bool autoHelp;
-        private bool autoVersion;
-        private bool addNewLineBetweenHelpSections;
+        private          int             maximumDisplayWidth;
+        private          string          heading;
+        private          string          copyright;
+        private          bool            additionalNewLineAfterOption;
+        private          StringBuilder   optionsHelp;
+        private          bool            addDashesToOption;
+        private          bool            addEnumValuesToHelpText;
+        private          bool            autoHelp;
+        private          bool            autoVersion;
+        private          bool            addNewLineBetweenHelpSections;
+        private          bool            useAppDomainTypeConverters;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="CommandLine.Text.HelpText"/> class.
@@ -306,6 +307,15 @@ namespace CommandLine.Text
         }
 
         /// <summary>
+        /// True if possible values should be attained from the AppDomain's Type Converters
+        /// </summary>
+        public bool UseAppDomainTypeConverters
+        {
+            get { return useAppDomainTypeConverters; }
+            set { useAppDomainTypeConverters = value; }
+        }
+
+        /// <summary>
         /// Creates a new instance of the <see cref="CommandLine.Text.HelpText"/> class using common defaults.
         /// </summary>
         /// <returns>
@@ -316,26 +326,29 @@ namespace CommandLine.Text
         /// <param name='onExample'>A delegate used to customize <see cref="CommandLine.Text.Example"/> model used to render text block of usage examples.</param>
         /// <param name="verbsIndex">If true the output style is consistent with verb commands (no dashes), otherwise it outputs options.</param>
         /// <param name="maxDisplayWidth">The maximum width of the display.</param>
+        /// <param name="useAppDomainTypeConverters">True if possible values should be attained from the AppDomain's Type Converters</param>
         /// <remarks>The parameter <paramref name="verbsIndex"/> is not ontly a metter of formatting, it controls whether to handle verbs or options.</remarks>
         public static HelpText AutoBuild<T>(
-            ParserResult<T> parserResult,
+            ParserResult<T>          parserResult,
             Func<HelpText, HelpText> onError,
-            Func<Example, Example> onExample,
-            bool verbsIndex = false,
-            int maxDisplayWidth = DefaultMaximumLength)
+            Func<Example, Example>   onExample,
+            bool                     verbsIndex                 = false,
+            int                      maxDisplayWidth            = DefaultMaximumLength,
+            bool                     useAppDomainTypeConverters = false)
         {
             var auto = new HelpText
             {
-                Heading = HeadingInfo.Empty,
-                Copyright = CopyrightInfo.Empty,
+                Heading                      = HeadingInfo.Empty,
+                Copyright                    = CopyrightInfo.Empty,
                 AdditionalNewLineAfterOption = true,
-                AddDashesToOption = !verbsIndex,
-                MaximumDisplayWidth = maxDisplayWidth
+                AddDashesToOption            = !verbsIndex,
+                MaximumDisplayWidth          = maxDisplayWidth,
+                UseAppDomainTypeConverters   = useAppDomainTypeConverters
             };
 
             try
             {
-                auto.Heading = HeadingInfo.Default;
+                auto.Heading   = HeadingInfo.Default;
                 auto.Copyright = CopyrightInfo.Default;
             }
             catch (Exception)
@@ -354,14 +367,15 @@ namespace CommandLine.Text
             }
 
             ReflectionHelper.GetAttribute<AssemblyLicenseAttribute>()
-                .Do(license => license.AddToHelpText(auto, true));
+                            .Do(license => license.AddToHelpText(auto, true));
 
-            var usageAttr = ReflectionHelper.GetAttribute<AssemblyUsageAttribute>();
+            var usageAttr  = ReflectionHelper.GetAttribute<AssemblyUsageAttribute>();
             var usageLines = HelpText.RenderUsageTextAsLines(parserResult, onExample).ToMaybe();
 
             if (usageAttr.IsJust() || usageLines.IsJust())
             {
                 var heading = auto.SentenceBuilder.UsageHeadingText();
+
                 if (heading.Length > 0)
                 {
                     if (auto.AddNewLineBetweenHelpSections)
@@ -376,8 +390,8 @@ namespace CommandLine.Text
             usageLines.Do(
                 lines => auto.AddPreOptionsLines(lines));
 
-            if ((verbsIndex && parserResult.TypeInfo.Choices.Any())
-                || errors.Any(e => e.Tag == ErrorType.NoVerbSelectedError))
+            if ((verbsIndex && parserResult.TypeInfo.Choices.Any()) ||
+                errors.Any(e => e.Tag == ErrorType.NoVerbSelectedError))
             {
                 auto.AddDashesToOption = false;
                 auto.AddVerbs(parserResult.TypeInfo.Choices.ToArray());
@@ -394,14 +408,15 @@ namespace CommandLine.Text
         /// </summary>
         /// <param name='parserResult'>The <see cref="CommandLine.ParserResult{T}"/> containing the instance that collected command line arguments parsed with <see cref="CommandLine.Parser"/> class.</param>
         /// <param name="maxDisplayWidth">The maximum width of the display.</param>
+        /// <param name="useAppDomainTypeConverters">True if possible values should be attained from the AppDomain's Type Converters</param>
         /// <returns>
         /// An instance of <see cref="CommandLine.Text.HelpText"/> class.
         /// </returns>
         /// <remarks>This feature is meant to be invoked automatically by the parser, setting the HelpWriter property
         /// of <see cref="CommandLine.ParserSettings"/>.</remarks>
-        public static HelpText AutoBuild<T>(ParserResult<T> parserResult, int maxDisplayWidth = DefaultMaximumLength)
+        public static HelpText AutoBuild<T>(ParserResult<T> parserResult, int maxDisplayWidth = DefaultMaximumLength, bool useAppDomainTypeConverters = false)
         {
-            return AutoBuild<T>(parserResult, h => h, maxDisplayWidth);
+            return AutoBuild<T>(parserResult, h => h, maxDisplayWidth, useAppDomainTypeConverters);
         }
 
         /// <summary>
@@ -411,12 +426,13 @@ namespace CommandLine.Text
         /// <param name='parserResult'>The <see cref="CommandLine.ParserResult{T}"/> containing the instance that collected command line arguments parsed with <see cref="CommandLine.Parser"/> class.</param>
         ///  <param name='onError'>A delegate used to customize the text block of reporting parsing errors text block.</param>
         /// <param name="maxDisplayWidth">The maximum width of the display.</param>
+        /// <param name="useAppDomainTypeConverters">True if possible values should be attained from the AppDomain's Type Converters</param>
         /// <returns>
         /// An instance of <see cref="CommandLine.Text.HelpText"/> class.
         /// </returns>
         /// <remarks>This feature is meant to be invoked automatically by the parser, setting the HelpWriter property
         /// of <see cref="CommandLine.ParserSettings"/>.</remarks>
-        public static HelpText AutoBuild<T>(ParserResult<T> parserResult, Func<HelpText, HelpText> onError, int maxDisplayWidth = DefaultMaximumLength)
+        public static HelpText AutoBuild<T>(ParserResult<T> parserResult, Func<HelpText, HelpText> onError, int maxDisplayWidth = DefaultMaximumLength, bool useAppDomainTypeConverters = false)
         {
             if (parserResult.Tag != ParserResultType.NotParsed)
                 throw new ArgumentException("Excepting NotParsed<T> type.", "parserResult");
@@ -431,7 +447,7 @@ namespace CommandLine.Text
                 {
                     onError?.Invoke(current);
                     return DefaultParsingErrorsHandler(parserResult, current);
-                }, e => e, maxDisplayWidth: maxDisplayWidth);
+                }, e => e, maxDisplayWidth: maxDisplayWidth, useAppDomainTypeConverters:useAppDomainTypeConverters);
 
             var err = errors.OfType<HelpVerbRequestedError>().Single();
             var pr = new NotParsed<object>(TypeInfo.Create(err.Type), new Error[] { err });
@@ -440,12 +456,12 @@ namespace CommandLine.Text
                 {
                     onError?.Invoke(current);
                     return DefaultParsingErrorsHandler(pr, current);
-                }, e => e, maxDisplayWidth: maxDisplayWidth)
+                }, e => e, maxDisplayWidth: maxDisplayWidth, useAppDomainTypeConverters:useAppDomainTypeConverters)
                 : AutoBuild(parserResult, current =>
                 {
                     onError?.Invoke(current);
                     return DefaultParsingErrorsHandler(parserResult, current);
-                }, e => e, true, maxDisplayWidth);
+                }, e => e, true, maxDisplayWidth, useAppDomainTypeConverters:useAppDomainTypeConverters);
         }
 
         /// <summary>
@@ -816,7 +832,7 @@ namespace CommandLine.Text
 
         private IEnumerable<Specification> GetSpecificationsFromType(Type type)
         {
-            var specs = type.GetSpecifications(Specification.FromProperty);
+            var specs = type.GetSpecifications( property =>  Specification.FromProperty(property, UseAppDomainTypeConverters, StringComparer.Ordinal));
             var optionSpecs = specs
                 .OfType<OptionSpecification>();
             if (autoHelp)
@@ -941,10 +957,7 @@ namespace CommandLine.Text
             {
                 if (specification.Tag == SpecificationType.Option &&
                     specification is OptionSpecification optionSpecification &&
-                    optionSpecification.Group.Length > 0
-                    )
-
-
+                    optionSpecification.Group.Length > 0)
                 {
                     return optionSpecification;
                 }
@@ -968,8 +981,8 @@ namespace CommandLine.Text
 
             var optionHelpText = specification.HelpText;
 
-            if (addEnumValuesToHelpText && specification.EnumValues.Any())
-                optionHelpText += " Valid values: " + string.Join(", ", specification.EnumValues);
+            if (addEnumValuesToHelpText && specification.PossibleValues.Any())
+                optionHelpText += " Valid values: " + string.Join(", ", specification.PossibleValues);
 
             specification.DefaultValue.Do(
                 defaultValue => optionHelpText = "(Default: {0}) ".FormatInvariant(FormatDefaultValue(defaultValue)) + optionHelpText);

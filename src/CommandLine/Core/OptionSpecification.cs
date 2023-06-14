@@ -18,10 +18,10 @@ namespace CommandLine.Core
         private readonly bool flagCounter;
 
         public OptionSpecification(string shortName, string longName, bool required, string setName, Maybe<int> min, Maybe<int> max,
-            char separator, Maybe<object> defaultValue, string helpText, string metaValue, IEnumerable<string> enumValues,
+            char separator, Maybe<object> defaultValue, string helpText, string metaValue, IEnumerable<string> possibleValues,
             Type conversionType, TargetType targetType, string group, bool flagCounter = false, bool hidden = false, Maybe<Type> typeConverter = null)
             : base(SpecificationType.Option,
-                 required, min, max, defaultValue, helpText, metaValue, enumValues, conversionType, 
+                 required, min, max, defaultValue, helpText, metaValue, possibleValues, conversionType, 
                  conversionType == typeof(int) && flagCounter ? TargetType.Switch : targetType, 
                  hidden, typeConverter)
         {

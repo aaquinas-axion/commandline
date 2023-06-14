@@ -150,10 +150,12 @@ namespace CommandLine.Core
             }
             return Result.Try(
                 conversionType.IsPrimitiveEx() || ReflectionHelper.IsFSharpOptionType(conversionType)
-                    ?  customTypeConverter.IsJust() 
+                    ?  customTypeConverter.IsJust() && customTypeConverter.FromJust().CanConvertFrom(typeof(string))
                         ? useTypeConverter
                         : changeType
-                    : makeType);
+                    : customTypeConverter.IsJust() && customTypeConverter.FromJust().CanConvertFrom(typeof(string))
+                        ? useTypeConverter
+                        : makeType);
         }
 
         internal static object ToEnum(this string value, Type conversionType, bool ignoreValueCase)

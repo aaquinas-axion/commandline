@@ -50,12 +50,13 @@ namespace CommandLine.Core
             bool autoVersion,
             bool allowMultiInstance,
             IEnumerable<ErrorType> nonFatalErrors,
-            bool useAppDomainTypeConverters, Type customTypeConverterType = null)        
+            bool useAppDomainTypeConverters, 
+            Type customTypeConverterType = null)        
         {
             var typeInfo = factory.MapValueOrDefault(f => f().GetType(), typeof(T));
 
             var specProps = typeInfo.GetSpecifications(pi => SpecificationProperty.Create(
-                    Specification.FromProperty(pi), pi, Maybe.Nothing<object>()))
+                    Specification.FromProperty(pi, useAppDomainTypeConverters, nameComparer), pi, Maybe.Nothing<object>()))
                 .Memoize();
 
             var specs = from pt in specProps select pt.Specification;
