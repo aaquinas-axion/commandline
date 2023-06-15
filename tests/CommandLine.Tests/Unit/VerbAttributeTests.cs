@@ -1,7 +1,7 @@
 ﻿using System;
 using Xunit;
 
-namespace CommandLine.Tests
+namespace CommandLine.Tests.Unit
 {
 	//Test localization of VerbAttribute
     public  class VerbAttributeTests

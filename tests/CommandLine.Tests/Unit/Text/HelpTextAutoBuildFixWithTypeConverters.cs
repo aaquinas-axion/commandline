@@ -10,7 +10,7 @@ namespace CommandLine.Tests.Unit.Text
     public class HelpTextAutoBuildFixWithTypeConverters
     {
         [Fact]
-        [Trait("Category", "TypeConverters")]
+        [Trait("Category", "SysTypeConverters")]
         public void HelpText_with_AdditionalNewLineAfterOption_true_should_have_newline()
         {
             // Fixture setup
@@ -36,7 +36,7 @@ namespace CommandLine.Tests.Unit.Text
         }
 
         [Fact]
-        [Trait("Category", "TypeConverters")]
+        [Trait("Category", "SysTypeConverters")]
         public void HelpText_with_AdditionalNewLineAfterOption_false_should_not_have_newline()
         {
             // Fixture setup
@@ -56,7 +56,7 @@ namespace CommandLine.Tests.Unit.Text
             // Teardown
         }
         [Fact]
-        [Trait("Category", "TypeConverters")]
+        [Trait("Category", "SysTypeConverters")]
         public void HelpText_with_by_default_should_include_help_version_option()
         {
             // Fixture setup
@@ -75,7 +75,7 @@ namespace CommandLine.Tests.Unit.Text
         }
 
         [Fact]
-        [Trait("Category", "TypeConverters")]
+        [Trait("Category", "SysTypeConverters")]
         public void HelpText_with_AutoHelp_false_should_hide_help_option()
         {
             // Fixture setup

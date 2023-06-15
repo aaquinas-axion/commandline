@@ -1588,6 +1588,9 @@ namespace CommandLine.Tests.Unit.Core
             customValue2.Input.Should().Be(arguments[1]);
         }
 
+        #endregion
+
+        #region custom types 
         [Theory]
         [InlineData(new[] { "-c", "localhost:8080" }, "localhost", 8080)]
         public void Parse_custom_struct_type_with_converter(string[] arguments, string expectedServer, int expectedPort)

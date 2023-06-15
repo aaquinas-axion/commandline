@@ -122,8 +122,11 @@ namespace CommandLine.Core
             get { return hidden; }
         }
 
-        public Maybe<SysTypeConverter> GetConverter(bool useAppDomainTypeConverters)
+        public Maybe<SysTypeConverter> GetConverter(bool useAppDomainTypeConverters, bool isFlag = false)
         {
+            if (isFlag)
+                return Maybe.Nothing<SysTypeConverter>();
+
             SysTypeConverter result = (!useAppDomainTypeConverters || ConversionType is null
                 ? null
                 : System.ComponentModel.TypeDescriptor.GetConverter(ConversionType)) as SysTypeConverter;
@@ -208,7 +211,9 @@ namespace CommandLine.Core
 
             if (spec is null)
                 throw new InvalidOperationException();
-            var converter = spec.GetConverter(useAppDomainTypeConverters);
+
+            bool isFlag    = spec.Tag == SpecificationType.Option && ((OptionSpecification)spec).FlagCounter;
+            var  converter = spec.GetConverter(useAppDomainTypeConverters, isFlag);
 
             if (!converter.IsJust())
                 return spec;

@@ -25,7 +25,7 @@ namespace CommandLine.Tests.Unit.Text
         }
 
         [Fact]
-        [Trait("Category", "TypeConverters")]
+        [Trait("Category", "SysTypeConverters")]
         public void Create_empty_instance()
         {
             string.Empty.Should().BeEquivalentTo(new HelpText(){UseAppDomainTypeConverters = true}.ToString());
@@ -34,7 +34,7 @@ namespace CommandLine.Tests.Unit.Text
         [Theory]
         [InlineData(true)]
         [InlineData(false)]
-        [Trait("Category", "TypeConverters")]
+        [Trait("Category", "SysTypeConverters")]
         public void Create_instance_without_options(bool newlineBetweenSections)
         {
             // Fixture setup
@@ -71,7 +71,7 @@ namespace CommandLine.Tests.Unit.Text
         [Theory]
         [InlineData(true)]
         [InlineData(false)]
-        [Trait("Category", "TypeConverters")]
+        [Trait("Category", "SysTypeConverters")]
         public void Create_instance_with_options(bool newlineBetweenSections)
         {
             // Fixture setup
@@ -103,7 +103,7 @@ namespace CommandLine.Tests.Unit.Text
         }
 
         [Fact]
-        [Trait("Category", "TypeConverters")]
+        [Trait("Category", "SysTypeConverters")]
         public void Create_instance_with_enum_options_enabled()
         {
             // Fixture setup
@@ -127,7 +127,7 @@ namespace CommandLine.Tests.Unit.Text
         }
 
         [Fact]
-        [Trait("Category", "TypeConverters")]
+        [Trait("Category", "SysTypeConverters")]
         public void Create_instance_with_enum_options_disabled()
         {
             // Fixture setup
@@ -150,7 +150,7 @@ namespace CommandLine.Tests.Unit.Text
         }
 
         [Fact]
-        [Trait("Category", "TypeConverters")]
+        [Trait("Category", "SysTypeConverters")]
         public void When_defined_MetaValue_should_be_rendered()
         {
             // Fixture setup
@@ -167,7 +167,7 @@ namespace CommandLine.Tests.Unit.Text
         }
 
         [Fact]
-        [Trait("Category", "TypeConverters")]
+        [Trait("Category", "SysTypeConverters")]
         public void When_help_text_is_longer_than_width_it_will_wrap_around_as_if_in_a_column_given_width_of_40()
         {
             // Fixture setup
@@ -191,7 +191,7 @@ namespace CommandLine.Tests.Unit.Text
         }
 
         [Fact]
-        [Trait("Category", "TypeConverters")]
+        [Trait("Category", "SysTypeConverters")]
         public void When_help_text_is_longer_than_width_it_will_wrap_around_as_if_in_a_column_given_width_of_100()
         {
             // Fixture setup
@@ -211,7 +211,7 @@ namespace CommandLine.Tests.Unit.Text
         }
 
         [Fact]
-        [Trait("Category", "TypeConverters")]
+        [Trait("Category", "SysTypeConverters")]
         public void When_help_text_has_hidden_option_it_should_not_be_added_to_help_text_output()
         {
             // Fixture setup
@@ -232,7 +232,7 @@ namespace CommandLine.Tests.Unit.Text
         }
 
         [Fact]
-        [Trait("Category", "TypeConverters")]
+        [Trait("Category", "SysTypeConverters")]
         public void Long_help_text_without_spaces()
         {
             // Fixture setup
@@ -256,7 +256,7 @@ namespace CommandLine.Tests.Unit.Text
         }
 
         [Fact]
-        [Trait("Category", "TypeConverters")]
+        [Trait("Category", "SysTypeConverters")]
         public void Long_pre_and_post_lines_without_spaces()
         {
             // Fixture setup
@@ -280,7 +280,7 @@ namespace CommandLine.Tests.Unit.Text
         }
 
         [Fact]
-        [Trait("Category", "TypeConverters")]
+        [Trait("Category", "SysTypeConverters")]
         public void Invoke_AutoBuild_for_Options_returns_appropriate_formatted_text()
         {
             // Fixture setup
@@ -317,7 +317,7 @@ namespace CommandLine.Tests.Unit.Text
         }
 
         [Fact]
-        [Trait("Category", "TypeConverters")]
+        [Trait("Category", "SysTypeConverters")]
         public void Invoke_AutoBuild_for_Verbs_with_specific_verb_returns_appropriate_formatted_text()
         {
             // Fixture setup
@@ -349,7 +349,7 @@ namespace CommandLine.Tests.Unit.Text
         }
 
         [Fact]
-        [Trait("Category", "TypeConverters")]
+        [Trait("Category", "SysTypeConverters")]
         public void Invoke_AutoBuild_for_Verbs_with_specific_verb_returns_appropriate_formatted_text_given_display_width_100()
         {
             // Fixture setup
@@ -375,7 +375,7 @@ namespace CommandLine.Tests.Unit.Text
         }
 
         [Fact]
-        [Trait("Category", "TypeConverters")]
+        [Trait("Category", "SysTypeConverters")]
         public void Invoke_AutoBuild_for_Verbs_with_unknown_verb_returns_appropriate_formatted_text()
         {
             // Fixture setup
@@ -403,7 +403,7 @@ namespace CommandLine.Tests.Unit.Text
         }
 
         [Fact]
-        [Trait("Category", "TypeConverters")]
+        [Trait("Category", "SysTypeConverters")]
         public void Create_instance_with_options_and_values()
         {
             // Fixture setup
@@ -434,7 +434,7 @@ namespace CommandLine.Tests.Unit.Text
         [Theory]
         [InlineData(true)]
         [InlineData(false)]
-        [Trait("Category", "TypeConverters")]
+        [Trait("Category", "SysTypeConverters")]
         public void Invoke_AutoBuild_for_Options_with_Usage_returns_appropriate_formatted_text(bool newlineBetweenSections)
         {
             // Fixture setup
@@ -510,7 +510,7 @@ namespace CommandLine.Tests.Unit.Text
         [InlineData(true, false)]
         [InlineData(false, true)]
         [InlineData(false, false)]
-        [Trait("Category", "TypeConverters")]
+        [Trait("Category", "SysTypeConverters")]
         public void AutoBuild_with_errors_and_preoptions_renders_correctly(bool startWithNewline, bool newlineBetweenSections)
         {
             // Fixture setup
@@ -558,7 +558,7 @@ namespace CommandLine.Tests.Unit.Text
         }
 
         [Fact]
-        [Trait("Category", "TypeConverters")]
+        [Trait("Category", "SysTypeConverters")]
         public void Default_set_to_sequence_should_be_properly_printed()
         {
             // Fixture setup
@@ -585,7 +585,7 @@ namespace CommandLine.Tests.Unit.Text
         }
 
         [Fact]
-        [Trait("Category", "TypeConverters")]
+        [Trait("Category", "SysTypeConverters")]
         public void AutoBuild_when_no_assembly_attributes()
         {
             string expectedCopyright = $"Copyright (C) {DateTime.Now.Year} author"; 
@@ -600,7 +600,7 @@ namespace CommandLine.Tests.Unit.Text
 
 
         [Fact]
-        [Trait("Category", "TypeConverters")]
+        [Trait("Category", "SysTypeConverters")]
         public void AutoBuild_with_assembly_title_and_version_attributes_only()
         {
             string expectedTitle = "Title";
@@ -619,7 +619,7 @@ namespace CommandLine.Tests.Unit.Text
         }
 
         [Fact]
-        [Trait("Category", "TypeConverters")]
+        [Trait("Category", "SysTypeConverters")]
         public void AutoBuild_with_assembly_company_attribute_only()
         {
             string expectedCompany = "Company";
@@ -646,7 +646,7 @@ namespace CommandLine.Tests.Unit.Text
 
 
         [Fact]
-        [Trait("Category", "TypeConverters")]
+        [Trait("Category", "SysTypeConverters")]
         public void HelpTextHonoursLineBreaks()
         {
             // Fixture setup
@@ -666,7 +666,7 @@ namespace CommandLine.Tests.Unit.Text
         }
 
         [Fact]
-        [Trait("Category", "TypeConverters")]
+        [Trait("Category", "SysTypeConverters")]
         public void HelpTextHonoursIndentationAfterLineBreaks()
         {
             // Fixture setup
@@ -686,7 +686,7 @@ namespace CommandLine.Tests.Unit.Text
         }
 
         [Fact]
-        [Trait("Category", "TypeConverters")]
+        [Trait("Category", "SysTypeConverters")]
         public void HelpTextPreservesIndentationAcrossWordWrap()
         {
             // Fixture setup
@@ -710,7 +710,7 @@ namespace CommandLine.Tests.Unit.Text
         }
 
         [Fact]
-        [Trait("Category", "TypeConverters")]
+        [Trait("Category", "SysTypeConverters")]
         public void HelpTextIsConsitentRegardlessOfCompileTimeLineStyle()
         {
             // Fixture setup
@@ -730,7 +730,7 @@ namespace CommandLine.Tests.Unit.Text
         }
 
         [Fact]
-        [Trait("Category", "TypeConverters")]
+        [Trait("Category", "SysTypeConverters")]
         public void HelpTextPreservesIndentationAcrossWordWrapWithSmallMaximumDisplayWidth()
         {
             // Fixture setup
@@ -747,7 +747,7 @@ namespace CommandLine.Tests.Unit.Text
         }
 
         [Fact]
-        [Trait("Category", "TypeConverters")]
+        [Trait("Category", "SysTypeConverters")]
         public void Options_should_be_separated_by_spaces()
         {
             // Fixture setup
@@ -775,7 +775,7 @@ namespace CommandLine.Tests.Unit.Text
         }
 
         [Fact]
-        [Trait("Category", "TypeConverters")]
+        [Trait("Category", "SysTypeConverters")]
         public void Options_Should_Render_OptionGroup_In_Parenthesis_When_Available()
         {
             var sut = new HelpText(headingInfo) { AddDashesToOption = true, MaximumDisplayWidth = 100, UseAppDomainTypeConverters = true}
@@ -796,7 +796,7 @@ namespace CommandLine.Tests.Unit.Text
         }
 
         [Fact]
-        [Trait("Category", "TypeConverters")]
+        [Trait("Category", "SysTypeConverters")]
         public void Options_Should_Render_OptionGroup_When_Available_And_Should_Not_Render_Required()
         {
             var sut = new HelpText(headingInfo) { AddDashesToOption = true, MaximumDisplayWidth = 100, UseAppDomainTypeConverters = true}
@@ -817,7 +817,7 @@ namespace CommandLine.Tests.Unit.Text
         }
 
         [Fact]
-        [Trait("Category", "TypeConverters")]
+        [Trait("Category", "SysTypeConverters")]
         public void Options_Should_Render_Multiple_OptionGroups_When_Available()
         {
             var sut = new HelpText(headingInfo) { AddDashesToOption = true, MaximumDisplayWidth = 100, UseAppDomainTypeConverters = true}
