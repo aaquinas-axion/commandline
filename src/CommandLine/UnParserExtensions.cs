@@ -8,6 +8,7 @@ using System.Text;
 using CommandLine.Core;
 using CommandLine.Infrastructure;
 using CSharpx;
+using TypeConverter = System.ComponentModel.TypeConverter;
 
 namespace CommandLine
 {
@@ -65,6 +66,7 @@ namespace CommandLine
             get { return skipDefault; }
             set { PopsicleSetter.Set(Consumed, ref skipDefault, value); }
         }
+
         /// <summary>
         /// Factory method that creates an instance of <see cref="CommandLine.UnParserSettings"/> with GroupSwitches set to true.
         /// </summary>
@@ -124,7 +126,10 @@ namespace CommandLine
         /// <param name="configuration">The <see cref="Action{UnParserSettings}"/> lambda used to configure
         /// aspects and behaviors of the unparsersing process.</param>
         /// <returns>A string with command line arguments.</returns>
-        public static string FormatCommandLine<T>(this Parser parser, T options, Action<UnParserSettings> configuration)
+        public static string FormatCommandLine<T>(
+            this Parser parser, T options,
+            Action<UnParserSettings> configuration,
+            bool useAppDomainTypeConverters = false)
         {
             if (options == null) throw new ArgumentNullException("options");
 
@@ -188,14 +193,14 @@ namespace CommandLine
             optSpecs.ForEach(
                 opt =>
                     builder
-                        .Append(FormatOption((OptionSpecification)opt.Specification, opt.Value, settings))
+                        .Append(FormatOption((OptionSpecification)opt.Specification, opt.Value, settings, useAppDomainTypeConverters))
                         .Append(' ')
                 );
 
             builder.AppendWhen(valSpecs.Any() && parser.Settings.EnableDashDash, "-- ");
 
             valSpecs.ForEach(
-                val => builder.Append(FormatValue(val.Specification, val.Value)).Append(' '));
+                val => builder.Append(FormatValue(val.Specification, val.Value, useAppDomainTypeConverters)).Append(' '));
 
             return builder
                 .ToString().TrimEnd(' ');
@@ -209,22 +214,36 @@ namespace CommandLine
         /// <param name="configuration">The <see cref="Action{UnParserSettings}"/> lambda used to configure
         /// aspects and behaviors of the unparsersing process.</param>
         /// <returns>A string[] with command line arguments.</returns>
-        public static string[] FormatCommandLineArgs<T>(this Parser parser, T options, Action<UnParserSettings> configuration)
+        public static string[] FormatCommandLineArgs<T>(this Parser parser, T options, Action<UnParserSettings> configuration, bool useAppDomainTypeConverters = false)
         {
-            return FormatCommandLine<T>(parser, options, configuration).SplitArgs();
+            return FormatCommandLine<T>(parser, options, configuration, useAppDomainTypeConverters).SplitArgs();
         }
-        private static string FormatValue(Specification spec, object value)
+        private static string FormatValue(Specification spec, object value, bool useAppDomainTypeConverters = false)
         {
             var builder = new StringBuilder();
+
+
+            Maybe<TypeConverter> converter = spec.GetConverter(useAppDomainTypeConverters);
+
+            object Convert(object val)
+            {
+                if (converter.IsNothing())
+                    return val;
+                var conv = converter.FromJust();
+                return conv.CanConvertTo(typeof(string))
+                    ? (object)converter.FromJust().ConvertTo(val, typeof(string))
+                    : val;
+            }
+
             switch (spec.TargetType)
             {
                 case TargetType.Scalar:
-                    builder.Append(FormatWithQuotesIfString(value));
+                    builder.Append(FormatWithQuotesIfString(Convert(value)));
                     break;
                 case TargetType.Sequence:
                     var sep = spec.SeperatorOrSpace();
                     Func<object, object> format = v
-                        => sep == ' ' ? FormatWithQuotesIfString(v) : v;
+                        => sep == ' ' ? FormatWithQuotesIfString(Convert(v)) : v;
                     var e = ((IEnumerable)value).GetEnumerator();
                     while (e.MoveNext())
                         builder.Append(format(e.Current)).Append(sep);
@@ -254,11 +273,11 @@ namespace CommandLine
                 .MapValueOrDefault(o => o.Separator != '\0' ? o.Separator : ' ', ' ');
         }
 
-        private static string FormatOption(OptionSpecification spec, object value, UnParserSettings settings)
+        private static string FormatOption(OptionSpecification spec, object value, UnParserSettings settings, bool useAppDomainTypeConverters = false)
         {
             return new StringBuilder()
                     .Append(spec.FormatName(value, settings))
-                    .AppendWhen(spec.TargetType != TargetType.Switch, FormatValue(spec, value))
+                    .AppendWhen(spec.TargetType != TargetType.Switch, FormatValue(spec, value, useAppDomainTypeConverters))
                 .ToString();
         }
 
