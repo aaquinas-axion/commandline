@@ -9,13 +9,6 @@ using System.Linq;
 namespace CommandLine.Core
 {
 
-    public enum ValueType
-    {
-        Switch,
-        Scaler,
-        Sequence
-    }
-
     public class ValueGroup
         : IEquatable<ValueGroup>
     {
@@ -23,18 +16,18 @@ namespace CommandLine.Core
 
         public IEnumerable<string> Values { get; }
 
-        public ValueType Class { get; }
+        internal TargetType TargetType { get; }
 
-        internal ValueGroup(Token origin, ValueType valueType, params string[] values)
+        internal ValueGroup(Token origin, TargetType valueType, params string[] values)
         {
             Values = values;
-            Class  = valueType;
+            TargetType  = valueType;
         }
 
         internal static IEnumerable<KeyValuePair<string, ValueGroup>> ForSwitch(
             IEnumerable<Token> tokens)
         {
-            return tokens.Select(t => new KeyValuePair<string, ValueGroup>(t.Text, new ValueGroup(t, ValueType.Switch, "true")));
+            return tokens.Select(t => new KeyValuePair<string, ValueGroup>(t.Text, new ValueGroup(t, TargetType.Switch, "true")));
         }
 
         internal static IEnumerable<KeyValuePair<string, ValueGroup>> ForScalar(
@@ -45,7 +38,7 @@ namespace CommandLine.Core
                   .Select(
                        (g) => new KeyValuePair<string, ValueGroup>(
                            g[0].Text,
-                           new ValueGroup(g[0], ValueType.Scaler, g[1].Text)));
+                           new ValueGroup(g[0], TargetType.Scalar, g[1].Text)));
         }
 
         internal static IEnumerable<KeyValuePair<string, ValueGroup>> ForSequence(
@@ -56,9 +49,9 @@ namespace CommandLine.Core
                         f.IsName()
                             ? new KeyValuePair<string, ValueGroup>( f.Text, new ValueGroup(
                                                                         f,
-                                                                        ValueType.Sequence,
+                                                                        TargetType.Sequence,
                                                                         tokens.SkipWhile(t => !t.Equals(f)).SkipWhile(t => t.Equals(f)).TakeWhile(v => v.IsValue()).Select(x => x.Text).ToArray()))
-                            : new KeyValuePair<string, ValueGroup>(string.Empty, new ValueGroup(f, ValueType.Sequence)))
+                            : new KeyValuePair<string, ValueGroup>(string.Empty, new ValueGroup(f, TargetType.Sequence)))
                    where t.Key.Length > 0 && t.Value.Values.Any()
                    select t;
         }
@@ -72,7 +65,7 @@ namespace CommandLine.Core
                 return true;
             return Equals(Origin, other.Origin) &&
                    ReferenceEquals(Values, other.Values) || (Values?.SequenceEqual(Values) ?? false) && 
-                   Class == other.Class;
+                   TargetType == other.TargetType;
         }
 
         /// <inheritdoc />
@@ -99,7 +92,7 @@ namespace CommandLine.Core
                            (Values != null
                                ? Values.Aggregate(0, (h,v)=> h*397 ^ v.GetHashCode())
                                : 0);
-                hashCode = (hashCode * 397) ^ (int)Class;
+                hashCode = (hashCode * 397) ^ (int)TargetType;
                 return hashCode;
             }
         }

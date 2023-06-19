@@ -24,7 +24,7 @@ namespace CommandLine.Tests.Unit.Core
         {
             var expected = new[]
                 {
-                    new KeyValuePair<string, ValueGroup>("seq", new ValueGroup(Token.Name("seq"), ValueType.Sequence, "seq0", "seq1", "seq2"))
+                    new KeyValuePair<string, ValueGroup>("seq", new ValueGroup(Token.Name("seq"), TargetType.Sequence, "seq0", "seq1", "seq2"))
                 };
 
             var result = ValueGroup.ForSequence(new []
@@ -40,8 +40,8 @@ namespace CommandLine.Tests.Unit.Core
         {
             var expected = new[]
                 {
-                    new KeyValuePair<string, ValueGroup>("seq1", new ValueGroup(Token.Name("seq1"), ValueType.Sequence, "seq10", "seq11", "seq12")),
-                    new KeyValuePair<string, ValueGroup>("seq2", new ValueGroup(Token.Name("seq2"), ValueType.Sequence, "seq20", "seq21"))
+                    new KeyValuePair<string, ValueGroup>("seq1", new ValueGroup(Token.Name("seq1"), TargetType.Sequence, "seq10", "seq11", "seq12")),
+                    new KeyValuePair<string, ValueGroup>("seq2", new ValueGroup(Token.Name("seq2"), TargetType.Sequence, "seq20", "seq21"))
                 };
 
             var result = ValueGroup.ForSequence(new[]

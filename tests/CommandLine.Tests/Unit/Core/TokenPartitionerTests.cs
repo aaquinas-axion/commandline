@@ -6,7 +6,6 @@ using System.Linq;
 using Xunit;
 using CSharpx;
 using CommandLine.Core;
-using ValueType = CommandLine.Core.ValueType;
 
 namespace CommandLine.Tests.Unit.Core
 {
@@ -18,7 +17,7 @@ namespace CommandLine.Tests.Unit.Core
             // Fixture setup
             var expectedSequence = new[]
                 {
-                    new KeyValuePair<string, ValueGroup>("i", new ValueGroup(Token.Name("i"), ValueType.Sequence,"10", "20", "30", "40"))
+                    new KeyValuePair<string, ValueGroup>("i", new ValueGroup(Token.Name("i"), TargetType.Sequence,"10", "20", "30", "40"))
                 };
             var specs = new[]
                 {

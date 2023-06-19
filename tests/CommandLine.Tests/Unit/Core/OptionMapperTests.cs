@@ -14,7 +14,6 @@ using CommandLine.Core;
 using CommandLine.Tests.Fakes;
 
 using SysTypeConverter = System.ComponentModel.TypeConverter;
-using ValueType = CommandLine.Core.ValueType;
 
 namespace CommandLine.Tests.Unit.Core
 {
@@ -26,7 +25,7 @@ namespace CommandLine.Tests.Unit.Core
             // Fixture setup
             var tokenPartitions = new[]
                 {
-                    new KeyValuePair<string,ValueGroup>("x", new ValueGroup(Token.Name("x"), ValueType.Switch, "true"))
+                    new KeyValuePair<string,ValueGroup>("x", new ValueGroup(Token.Name("x"), TargetType.Switch, "true"))
                 };
             var specProps = new[]
                 {
@@ -58,11 +57,11 @@ namespace CommandLine.Tests.Unit.Core
         {
             var tokenPartitions = new[]
             {
-                new KeyValuePair<string, ValueGroup>("s",            new ValueGroup(Token.Name("s"), ValueType.Scaler, "string1")),
-                new KeyValuePair<string, ValueGroup>("shortandlong",            new ValueGroup(Token.Name("s"), ValueType.Scaler, "string2")),
-                new KeyValuePair<string, ValueGroup>("shortandlong",            new ValueGroup(Token.Name("s"), ValueType.Scaler, "string3")),
-                new KeyValuePair<string, ValueGroup>("s",            new ValueGroup(Token.Name("s"), ValueType.Scaler, "string4")),
-                new KeyValuePair<string, ValueGroup>("s",            new ValueGroup(Token.Name("s"), ValueType.Scaler, "string1"))
+                new KeyValuePair<string, ValueGroup>("s",            new ValueGroup(Token.Name("s"), TargetType.Scalar, "string1")),
+                new KeyValuePair<string, ValueGroup>("shortandlong",            new ValueGroup(Token.Name("s"), TargetType.Scalar, "string2")),
+                new KeyValuePair<string, ValueGroup>("shortandlong",            new ValueGroup(Token.Name("s"), TargetType.Scalar, "string3")),
+                new KeyValuePair<string, ValueGroup>("s",            new ValueGroup(Token.Name("s"), TargetType.Scalar, "string4")),
+                new KeyValuePair<string, ValueGroup>("s",            new ValueGroup(Token.Name("s"), TargetType.Scalar, "string1"))
             };
 
             var specProps = new[]
@@ -91,9 +90,9 @@ namespace CommandLine.Tests.Unit.Core
         {
             var tokenPartitions = new[]
             {
-                new KeyValuePair<string, ValueGroup>("i", new ValueGroup(Token.Name("i"), ValueType.Scaler, "1")),
-                new KeyValuePair<string, ValueGroup>("i", new ValueGroup(Token.Name("i"), ValueType.Scaler, "3")),
-                new KeyValuePair<string, ValueGroup>("i", new ValueGroup(Token.Name("i"), ValueType.Scaler, "4", "5"))
+                new KeyValuePair<string, ValueGroup>("i", new ValueGroup(Token.Name("i"), TargetType.Scalar, "1")),
+                new KeyValuePair<string, ValueGroup>("i", new ValueGroup(Token.Name("i"), TargetType.Scalar, "3")),
+                new KeyValuePair<string, ValueGroup>("i", new ValueGroup(Token.Name("i"), TargetType.Scalar, "4", "5"))
             };
             var specProps = new[]
             {
