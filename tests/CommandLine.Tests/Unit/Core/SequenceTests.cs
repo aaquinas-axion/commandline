@@ -21,7 +21,7 @@ namespace CommandLine.Tests.Unit.Core
                     new[] { "seq" }.Contains(name)
                         ? Maybe.Just(TypeDescriptor.Create(TargetType.Sequence, Maybe.Nothing<int>()))
                         : Maybe.Nothing<TypeDescriptor>());
-            var result = tokens.Item3;  // Switch, Scalar, *Sequence*, NonOption
+            var result = tokens.SequenceTokens;
 
             expected.Should().AllBeEquivalentTo(result);
         }
@@ -45,7 +45,7 @@ namespace CommandLine.Tests.Unit.Core
                     new[] { "seq" }.Contains(name)
                         ? Maybe.Just(TypeDescriptor.Create(TargetType.Sequence, Maybe.Nothing<int>()))
                         : Maybe.Nothing<TypeDescriptor>());
-            var result = tokens.Item3;  // Switch, Scalar, *Sequence*, NonOption
+            var result = tokens.SequenceTokens; 
 
             expected.Should().BeEquivalentTo(result);
         }
@@ -71,7 +71,7 @@ namespace CommandLine.Tests.Unit.Core
                     new[] { "seq", "seqb" }.Contains(name)
                         ? Maybe.Just(TypeDescriptor.Create(TargetType.Sequence, Maybe.Nothing<int>()))
                         : Maybe.Nothing<TypeDescriptor>());
-            var result = tokens.Item3;  // Switch, Scalar, *Sequence*, NonOption
+            var result = tokens.SequenceTokens;
 
             expected.Should().BeEquivalentTo(result);
         }
@@ -93,7 +93,7 @@ namespace CommandLine.Tests.Unit.Core
                     new[] { "seq" }.Contains(name)
                         ? Maybe.Just(TypeDescriptor.Create(TargetType.Sequence, Maybe.Nothing<int>()))
                         : Maybe.Nothing<TypeDescriptor>());
-            var result = tokens.Item3;  // Switch, Scalar, *Sequence*, NonOption
+            var result = tokens.SequenceTokens;
 
             expected.Should().BeEquivalentTo(result);
         }
@@ -124,7 +124,7 @@ namespace CommandLine.Tests.Unit.Core
                     new[] { "seq" }.Contains(name)
                         ? Maybe.Just(TypeDescriptor.Create(TargetType.Sequence, Maybe.Nothing<int>()))
                         : Maybe.Nothing<TypeDescriptor>());
-            var result = tokens.Item3;  // Switch, Scalar, *Sequence*, NonOption
+            var result = tokens.SequenceTokens;
 
             var actual = result.ToArray();
             Assert.Equal(expected, actual);
@@ -165,7 +165,7 @@ namespace CommandLine.Tests.Unit.Core
                     new[] { "seq" }.Contains(name)
                         ? Maybe.Just(TypeDescriptor.Create(TargetType.Sequence, Maybe.Just<int>(3)))
                         : Maybe.Nothing<TypeDescriptor>());
-            var result = tokens.Item3;  // Switch, Scalar, *Sequence*, NonOption
+            var result = tokens.SequenceTokens;
 
             // Max of 3 will apply to the total values, so there should only be 3 values, not 6
             Assert.NotEqual(incorrect, result);

@@ -6,6 +6,7 @@ using System.Linq;
 using Xunit;
 using CSharpx;
 using CommandLine.Core;
+using ValueType = CommandLine.Core.ValueType;
 
 namespace CommandLine.Tests.Unit.Core
 {
@@ -17,7 +18,7 @@ namespace CommandLine.Tests.Unit.Core
             // Fixture setup
             var expectedSequence = new[]
                 {
-                    new KeyValuePair<string, IEnumerable<string>>("i", new[] {"10", "20", "30", "40"})
+                    new KeyValuePair<string, ValueGroup>("i", new ValueGroup(Token.Name("i"), ValueType.Sequence,"10", "20", "30", "40"))
                 };
             var specs = new[]
                 {
@@ -32,8 +33,12 @@ namespace CommandLine.Tests.Unit.Core
                 );
 
             // Verify outcome
-            var options = result.Item1;
-            Assert.True(expectedSequence.All(a => options.Any(r => a.Key.Equals(r.Key) && a.Value.SequenceEqual(r.Value))));
+            var options = result.ValueGroups;
+            Assert.True(
+                expectedSequence.All(
+                    a => options.Any(
+                        r => a.Key.Equals(r.Key) &&
+                             a.Value.Equals(r.Value))));
 
             // Teardown
         }
@@ -59,8 +64,8 @@ namespace CommandLine.Tests.Unit.Core
                 );
 
             // Verify outcome
-            var options = result.Item1;
-            Assert.True(expectedSequence.All(a => options.Any(r => a.Key.Equals(r.Key) && a.Value.SequenceEqual(r.Value))));
+            var options = result.ValueGroups;
+            Assert.True(expectedSequence.All(a => options.Any(r => a.Key.Equals(r.Key) && a.Value.Equals(r.Value))));
 
             // Teardown
         }

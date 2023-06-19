@@ -9,6 +9,7 @@ using CommandLine.Core;
 using CommandLine.Infrastructure;
 using CSharpx;
 using TypeConverter = System.ComponentModel.TypeConverter;
+using ValueType = System.ValueType;
 
 namespace CommandLine
 {

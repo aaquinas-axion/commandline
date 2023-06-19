@@ -21,7 +21,7 @@ namespace CommandLine.Tests.Unit.Core
                     new[] { "str", "int" }.Contains(name)
                         ? Maybe.Just(TypeDescriptor.Create(TargetType.Scalar, Maybe.Nothing<int>()))
                         : Maybe.Nothing<TypeDescriptor>());
-            var result = tokens.Item2;  // Switch, *Scalar*, Sequence, NonOption
+            var result = tokens.ScalarTokens; 
 
             expected.Should().BeEquivalentTo(result);
         }
@@ -41,7 +41,7 @@ namespace CommandLine.Tests.Unit.Core
                     new[] { "str", "int" }.Contains(name)
                         ? Maybe.Just(TypeDescriptor.Create(TargetType.Scalar, Maybe.Nothing<int>()))
                         : Maybe.Nothing<TypeDescriptor>());
-            var result = tokens.Item2;  // Switch, *Scalar*, Sequence, NonOption
+            var result = tokens.ScalarTokens;
 
             expected.Should().BeEquivalentTo(result);
         }

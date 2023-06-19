@@ -11,7 +11,7 @@ namespace CommandLine.Core
     static class TokenPartitioner
     {
         public static
-            Tuple<IEnumerable<KeyValuePair<string, IEnumerable<string>>>, IEnumerable<string>, IEnumerable<Token>> Partition(
+            PartitionResult Partition(
                 IEnumerable<Token> tokens,
                 Func<string, Maybe<TypeDescriptor>> typeLookup)
         {
@@ -19,36 +19,32 @@ namespace CommandLine.Core
 
             var tokenList = tokens.Memoize();
             var partitioned = PartitionTokensByType(tokenList, typeLookup);
-            var switches = partitioned.Item1;
-            var scalars = partitioned.Item2;
-            var sequences = partitioned.Item3;
-            var nonOptions = partitioned.Item4;
-            var valuesAndErrors = nonOptions.PartitionByPredicate(v => v.IsValue());
-            var values = valuesAndErrors.Item1;
-            var errors = valuesAndErrors.Item2;
-
-            return Tuple.Create(
-                    KeyValuePairHelper.ForSwitch(switches)
-                        .Concat(KeyValuePairHelper.ForScalar(scalars))
-                        .Concat(KeyValuePairHelper.ForSequence(sequences)),
-                values.Select(t => t.Text),
-                errors);
+            var valuesAndErrors = partitioned.NonOptionTokens.PartitionByPredicate(v => v.IsValue());
+            var values = valuesAndErrors.Yes;
+            var errors = valuesAndErrors.No;
+            return new PartitionResult(
+                    ValueGroup.ForSwitch(partitioned.SwitchTokens)
+                        .Concat(ValueGroup.ForScalar(partitioned.ScalarTokens))
+                        .Concat(ValueGroup.ForSequence(partitioned.SequenceTokens)),
+                values.AsEnumerable(),
+                errors.AsEnumerable());
         }
 
-        public static Tuple<IEnumerable<Token>, IEnumerable<Token>, IEnumerable<Token>, IEnumerable<Token>> PartitionTokensByType(
-            IEnumerable<Token> tokens,
+        public static PartitionTokensByTypeResults PartitionTokensByType(
+            IEnumerable<Token>                  tokens,
             Func<string, Maybe<TypeDescriptor>> typeLookup)
         {
-            var switchTokens = new List<Token>();
-            var scalarTokens = new List<Token>();
-            var sequenceTokens = new List<Token>();
-            var nonOptionTokens = new List<Token>();
-            var sequences = new Dictionary<Token, IList<Token>>();
-            var count = new Dictionary<Token, int>();
-            var max = new Dictionary<Token, Maybe<int>>();
-            var state = SequenceState.TokenSearch;
-            var separatorSeen = false;
-            Token nameToken = null;
+            var   switchTokens    = new List<Token>();
+            var   scalarTokens    = new List<Token>();
+            var   sequenceTokens  = new List<Token>();
+            var   nonOptionTokens = new List<Token>();
+            var   sequences       = new Dictionary<Token, IList<Token>>();
+            var   count           = new Dictionary<Token, int>();
+            var   max             = new Dictionary<Token, Maybe<int>>();
+            var   state           = SequenceState.TokenSearch;
+            var   separatorSeen   = false;
+            Token nameToken       = null;
+
             foreach (var token in tokens)
             {
                 if (token.IsValueForced())
@@ -59,30 +55,33 @@ namespace CommandLine.Core
                 else if (token.IsName())
                 {
                     separatorSeen = false;
+
                     if (typeLookup(token.Text).MatchJust(out var info))
                     {
                         switch (info.TargetType)
                         {
-                        case TargetType.Switch:
-                            nameToken = null;
-                            switchTokens.Add(token);
-                            state = SequenceState.TokenSearch;
-                            break;
-                        case TargetType.Scalar:
-                            nameToken = token;
-                            scalarTokens.Add(nameToken);
-                            state = SequenceState.ScalarTokenFound;
-                            break;
-                        case TargetType.Sequence:
-                            nameToken = token;
-                            if (! sequences.ContainsKey(nameToken))
-                            {
-                                sequences[nameToken] = new List<Token>();
-                                count[nameToken] = 0;
-                                max[nameToken] = info.MaxItems;
-                            }
-                            state = SequenceState.SequenceTokenFound;
-                            break;
+                            case TargetType.Switch:
+                                nameToken = null;
+                                switchTokens.Add(token);
+                                state = SequenceState.TokenSearch;
+                                break;
+                            case TargetType.Scalar:
+                                nameToken = token;
+                                scalarTokens.Add(nameToken);
+                                state = SequenceState.ScalarTokenFound;
+                                break;
+                            case TargetType.Sequence:
+                                nameToken = token;
+
+                                if (!sequences.ContainsKey(nameToken))
+                                {
+                                    sequences[nameToken] = new List<Token>();
+                                    count[nameToken]     = 0;
+                                    max[nameToken]       = info.MaxItems;
+                                }
+
+                                state = SequenceState.SequenceTokenFound;
+                                break;
                         }
                     }
                     else
@@ -97,23 +96,24 @@ namespace CommandLine.Core
                     switch (state)
                     {
                         case SequenceState.TokenSearch:
-                        case SequenceState.ScalarTokenFound when nameToken == null:
+                        case SequenceState.ScalarTokenFound when nameToken   == null:
                         case SequenceState.SequenceTokenFound when nameToken == null:
                             separatorSeen = false;
-                            nameToken = null;
+                            nameToken     = null;
                             nonOptionTokens.Add(token);
                             state = SequenceState.TokenSearch;
                             break;
 
                         case SequenceState.ScalarTokenFound:
                             separatorSeen = false;
-                            nameToken = null;
+                            nameToken     = null;
                             scalarTokens.Add(token);
                             state = SequenceState.TokenSearch;
                             break;
 
                         case SequenceState.SequenceTokenFound:
-                            if (sequences.TryGetValue(nameToken, out var sequence)) {
+                            if (sequences.TryGetValue(nameToken, out var sequence))
+                            {
                                 if (max[nameToken].MatchJust(out int m) && count[nameToken] >= m)
                                 {
                                     // This sequence is completed, so this and any further values are non-option values
@@ -131,7 +131,7 @@ namespace CommandLine.Core
                                 {
                                     // Previous token came from a separator but this one didn't: sequence is completed
                                     separatorSeen = false;
-                                    nameToken = null;
+                                    nameToken     = null;
                                     nonOptionTokens.Add(token);
                                     state = SequenceState.TokenSearch;
                                 }
@@ -145,18 +145,24 @@ namespace CommandLine.Core
                             {
                                 // Should never get here, but just in case:
                                 separatorSeen = false;
-                                sequences[nameToken] = new List<Token>(new[] { token });
+                                sequences[nameToken] = new List<Token>(
+                                    new[]
+                                    {
+                                        token
+                                    });
                                 count[nameToken] = 0;
-                                max[nameToken] = Maybe.Nothing<int>();
+                                max[nameToken]   = Maybe.Nothing<int>();
                             }
+
                             break;
-                        }
                     }
                 }
+            }
 
             foreach (var kvp in sequences)
             {
-                if (kvp.Value.Empty()) {
+                if (kvp.Value.Empty())
+                {
                     nonOptionTokens.Add(kvp.Key);
                 }
                 else
@@ -165,11 +171,12 @@ namespace CommandLine.Core
                     sequenceTokens.AddRange(kvp.Value);
                 }
             }
-            return Tuple.Create(
-                (IEnumerable<Token>)switchTokens,
-                (IEnumerable<Token>)scalarTokens,
-                (IEnumerable<Token>)sequenceTokens,
-                (IEnumerable<Token>)nonOptionTokens
+
+            return new PartitionTokensByTypeResults(
+                switchTokens,
+                scalarTokens,
+                sequenceTokens,
+                nonOptionTokens
             );
         }
 

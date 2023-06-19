@@ -21,7 +21,7 @@ namespace CommandLine.Tests.Unit.Core
                     new[] { "x", "switch" }.Contains(name)
                         ? Maybe.Just(TypeDescriptor.Create(TargetType.Switch, Maybe.Nothing<int>()))
                         : Maybe.Nothing<TypeDescriptor>());
-            var result = tokens.Item1;  // *Switch*, Scalar, Sequence, NonOption
+            var result = tokens.SwitchTokens;
 
             expected.Should().BeEquivalentTo(result);
         }
@@ -41,7 +41,7 @@ namespace CommandLine.Tests.Unit.Core
                     new[] { "x", "switch" }.Contains(name)
                         ? Maybe.Just(TypeDescriptor.Create(TargetType.Switch, Maybe.Nothing<int>()))
                         : Maybe.Nothing<TypeDescriptor>());
-            var result = tokens.Item1;  // *Switch*, Scalar, Sequence, NonOption
+            var result = tokens.SwitchTokens;  // *Switch*, Scalar, Sequence, NonOption
 
             expected.Should().BeEquivalentTo(result);
         }

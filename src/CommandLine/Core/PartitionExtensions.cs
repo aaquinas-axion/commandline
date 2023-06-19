@@ -9,17 +9,17 @@ namespace CommandLine.Core
 {
     static class PartitionExtensions
     {
-        public static Tuple<IEnumerable<T>,IEnumerable<T>> PartitionByPredicate<T>(
+        public static YesNoCollection<T> PartitionByPredicate<T>(
             this IEnumerable<T> items,
             Func<T, bool> pred)
         {
-            List<T> yes = new List<T>();
-            List<T> no = new List<T>();
+            var result = new YesNoCollection<T>();
             foreach (T item in items) {
-                List<T> list = pred(item) ? yes : no;
+                IList<T> list = pred(item) ? result.Yes : result.No;
                 list.Add(item);
             }
-            return Tuple.Create<IEnumerable<T>,IEnumerable<T>>(yes, no);
+
+            return result;
         }
     }
 }

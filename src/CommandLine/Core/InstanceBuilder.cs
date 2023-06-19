@@ -84,9 +84,9 @@ namespace CommandLine.Core
                 var partitions = TokenPartitioner.Partition(
                     tokens,
                     name => TypeLookup.FindTypeDescriptorAndSibling(name, optionSpecs, nameComparer));
-                var optionsPartition = partitions.Item1.Memoize();
-                var valuesPartition = partitions.Item2.Memoize();
-                var errorsPartition = partitions.Item3.Memoize();
+                var optionsPartition = partitions.ValueGroups;
+                var valuesPartition = partitions.ValueStrings.Memoize();
+                var errorsPartition = partitions.Errors.Memoize();
 
                 var optionSpecPropsResult =
                     OptionMapper.MapValues(

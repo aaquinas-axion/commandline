@@ -14,6 +14,7 @@ using CommandLine.Core;
 using CommandLine.Tests.Fakes;
 
 using SysTypeConverter = System.ComponentModel.TypeConverter;
+using ValueType = CommandLine.Core.ValueType;
 
 namespace CommandLine.Tests.Unit.Core
 {
@@ -25,7 +26,7 @@ namespace CommandLine.Tests.Unit.Core
             // Fixture setup
             var tokenPartitions = new[]
                 {
-                    new KeyValuePair<string, IEnumerable<string>>("x", new [] { "true" })
+                    new KeyValuePair<string,ValueGroup>("x", new ValueGroup(Token.Name("x"), ValueType.Switch, "true"))
                 };
             var specProps = new[]
                 {
@@ -57,10 +58,11 @@ namespace CommandLine.Tests.Unit.Core
         {
             var tokenPartitions = new[]
             {
-                new KeyValuePair<string, IEnumerable<string>>("s", new[] { "string1" }),
-                new KeyValuePair<string, IEnumerable<string>>("shortandlong", new[] { "string2" }),
-                new KeyValuePair<string, IEnumerable<string>>("shortandlong", new[] { "string3" }),
-                new KeyValuePair<string, IEnumerable<string>>("s", new[] { "string4" }),
+                new KeyValuePair<string, ValueGroup>("s",            new ValueGroup(Token.Name("s"), ValueType.Scaler, "string1")),
+                new KeyValuePair<string, ValueGroup>("shortandlong",            new ValueGroup(Token.Name("s"), ValueType.Scaler, "string2")),
+                new KeyValuePair<string, ValueGroup>("shortandlong",            new ValueGroup(Token.Name("s"), ValueType.Scaler, "string3")),
+                new KeyValuePair<string, ValueGroup>("s",            new ValueGroup(Token.Name("s"), ValueType.Scaler, "string4")),
+                new KeyValuePair<string, ValueGroup>("s",            new ValueGroup(Token.Name("s"), ValueType.Scaler, "string1"))
             };
 
             var specProps = new[]
@@ -81,7 +83,7 @@ namespace CommandLine.Tests.Unit.Core
             var property = result.SucceededWith().Single();
             Assert.True(property.Specification.IsOption());
             Assert.True(property.Value.MatchJust(out var stringVal));
-            Assert.Equal(tokenPartitions.Last().Value.Last(), stringVal);
+            Assert.Equal(tokenPartitions.Last().Value.Values.Last(), stringVal);
         }
 
         [Fact]
@@ -89,9 +91,9 @@ namespace CommandLine.Tests.Unit.Core
         {
             var tokenPartitions = new[]
             {
-                new KeyValuePair<string, IEnumerable<string>>("i", new [] { "1", "2" }),
-                new KeyValuePair<string, IEnumerable<string>>("i", new [] { "3" }),
-                new KeyValuePair<string, IEnumerable<string>>("i", new [] { "4", "5" }),
+                new KeyValuePair<string, ValueGroup>("i", new ValueGroup(Token.Name("i"), ValueType.Scaler, "1")),
+                new KeyValuePair<string, ValueGroup>("i", new ValueGroup(Token.Name("i"), ValueType.Scaler, "3")),
+                new KeyValuePair<string, ValueGroup>("i", new ValueGroup(Token.Name("i"), ValueType.Scaler, "4", "5"))
             };
             var specProps = new[]
             {
@@ -112,7 +114,7 @@ namespace CommandLine.Tests.Unit.Core
             Assert.True(property.Specification.IsOption());
             Assert.True(property.Value.MatchJust(out var sequence));
 
-            var expected = tokenPartitions.Aggregate(Enumerable.Empty<int>(), (prev, part) => prev.Concat(part.Value.Select(i => int.Parse(i))));
+            var expected = tokenPartitions.Aggregate(Enumerable.Empty<int>(), (prev, part) => prev.Concat(part.Value.Values.Select(i => int.Parse(i))));
             Assert.Equal(expected, sequence);
         }
     }

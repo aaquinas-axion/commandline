@@ -370,7 +370,7 @@ namespace CommandLine.Text
                             .Do(license => license.AddToHelpText(auto, true));
 
             var usageAttr  = ReflectionHelper.GetAttribute<AssemblyUsageAttribute>();
-            var usageLines = HelpText.RenderUsageTextAsLines(parserResult, onExample).ToMaybe();
+            var usageLines = HelpText.RenderUsageTextAsLines(parserResult, onExample, useAppDomainTypeConverters).ToMaybe();
 
             if (usageAttr.IsJust() || usageLines.IsJust())
             {
@@ -443,11 +443,18 @@ namespace CommandLine.Text
                 return new HelpText($"{HeadingInfo.Default}{Environment.NewLine}") { MaximumDisplayWidth = maxDisplayWidth }.AddPreOptionsLine(Environment.NewLine);
 
             if (!errors.Any(e => e.Tag == ErrorType.HelpVerbRequestedError))
-                return AutoBuild(parserResult, current =>
-                {
-                    onError?.Invoke(current);
-                    return DefaultParsingErrorsHandler(parserResult, current);
-                }, e => e, maxDisplayWidth: maxDisplayWidth, useAppDomainTypeConverters:useAppDomainTypeConverters);
+            {
+                return AutoBuild(
+                    parserResult,
+                    current =>
+                    {
+                        onError?.Invoke(current);
+                        return DefaultParsingErrorsHandler(parserResult, current);
+                    },
+                    e => e,
+                    maxDisplayWidth: maxDisplayWidth,
+                    useAppDomainTypeConverters: useAppDomainTypeConverters);
+            }
 
             var err = errors.OfType<HelpVerbRequestedError>().Single();
             var pr = new NotParsed<object>(TypeInfo.Create(err.Type), new Error[] { err });
@@ -665,10 +672,10 @@ namespace CommandLine.Text
         /// <param name="indent">Number of spaces used to indent text.</param>
         /// <returns>A sequence of <see cref="System.String"/> that contains the parsing error message.</returns>
         public static IEnumerable<string> RenderParsingErrorsTextAsLines<T>(
-            ParserResult<T> parserResult,
-            Func<Error, string> formatError,
+            ParserResult<T>                                      parserResult,
+            Func<Error, string>                                  formatError,
             Func<IEnumerable<MutuallyExclusiveSetError>, string> formatMutuallyExclusiveSetErrors,
-            int indent)
+            int                                                  indent)
         {
             if (parserResult == null) throw new ArgumentNullException("parserResult");
 
@@ -702,10 +709,11 @@ namespace CommandLine.Text
         /// </summary>
         /// <typeparam name="T">Type of parsing computation result.</typeparam>
         /// <param name="parserResult">A parsing computation result.</param>
+        /// <param name="useAppDomainTypeConverters">True if possible values should be attained from the AppDomain's Type Converters</param>
         /// <returns>Resulting formatted text.</returns>
-        public static string RenderUsageText<T>(ParserResult<T> parserResult)
+        public static string RenderUsageText<T>(ParserResult<T> parserResult, bool useAppDomainTypeConverters = false)
         {
-            return RenderUsageText(parserResult, example => example);
+            return RenderUsageText(parserResult, example => example, useAppDomainTypeConverters);
         }
 
         /// <summary>
@@ -714,10 +722,12 @@ namespace CommandLine.Text
         /// <typeparam name="T">Type of parsing computation result.</typeparam>
         /// <param name="parserResult">A parsing computation result.</param>
         /// <param name="mapperFunc">A mapping lambda normally used to translate text in other languages.</param>
+        /// <param name="useAppDomainTypeConverters">True if possible values should be attained from the AppDomain's Type Converters</param>
         /// <returns>Resulting formatted text.</returns>
-        public static string RenderUsageText<T>(ParserResult<T> parserResult, Func<Example, Example> mapperFunc)
+        public static string RenderUsageText<T>(ParserResult<T> parserResult, Func<Example, Example> mapperFunc, bool useAppDomainTypeConverters = false)
         {
-            return string.Join(Environment.NewLine, RenderUsageTextAsLines(parserResult, mapperFunc));
+            var lines = RenderUsageTextAsLines(parserResult, mapperFunc, useAppDomainTypeConverters).ToArray();
+            return string.Join(Environment.NewLine, lines);
         }
 
         /// <summary>
@@ -726,8 +736,12 @@ namespace CommandLine.Text
         /// <typeparam name="T">Type of parsing computation result.</typeparam>
         /// <param name="parserResult">A parsing computation result.</param>
         /// <param name="mapperFunc">A mapping lambda normally used to translate text in other languages.</param>
+        /// <param name="useAppDomainTypeConverters">True if possible values should be attained from the AppDomain's Type Converters</param>
         /// <returns>Resulting formatted text.</returns>
-        public static IEnumerable<string> RenderUsageTextAsLines<T>(ParserResult<T> parserResult, Func<Example, Example> mapperFunc)
+        public static IEnumerable<string> RenderUsageTextAsLines<T>(
+            ParserResult<T>        parserResult, 
+            Func<Example, Example> mapperFunc,
+            bool                   useAppDomainTypeConverters = false)
         {
             if (parserResult == null) throw new ArgumentNullException("parserResult");
 
@@ -749,16 +763,19 @@ namespace CommandLine.Text
                 foreach (var s in styles)
                 {
                     var commandLine = new StringBuilder(OptionPrefixWidth.Spaces())
-                        .Append(appAlias)
-                        .Append(' ')
-                        .Append(Parser.Default.FormatCommandLine(example.Sample,
-                            config =>
-                            {
-                                config.PreferShortName = s.PreferShortName;
-                                config.GroupSwitches = s.GroupSwitches;
-                                config.UseEqualToken = s.UseEqualToken;
-                                config.SkipDefault = s.SkipDefault;
-                            }));
+                                     .Append(appAlias)
+                                     .Append(' ')
+                                     .Append(
+                                          Parser.Default.FormatCommandLine(
+                                              example.Sample,
+                                              config =>
+                                              {
+                                                  config.PreferShortName            = s.PreferShortName;
+                                                  config.GroupSwitches              = s.GroupSwitches;
+                                                  config.UseEqualToken              = s.UseEqualToken;
+                                                  config.SkipDefault                = s.SkipDefault;
+                                              },
+                                              useAppDomainTypeConverters));
                     yield return commandLine.ToString();
                 }
             }

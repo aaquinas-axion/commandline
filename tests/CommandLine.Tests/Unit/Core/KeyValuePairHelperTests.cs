@@ -12,9 +12,9 @@ namespace CommandLine.Tests.Unit.Core
         [Fact]
         public void Empty_token_sequence_creates_an_empty_KeyValuePair_sequence()
         {
-            var expected = new KeyValuePair<string, IEnumerable<string>>[] { };
+            var expected = new KeyValuePair<string, ValueGroup>[] { }.AsEnumerable();
 
-            var result = KeyValuePairHelper.ForSequence(new Token[] { });
+            var result = ValueGroup.ForSequence(new Token[] { });
         
             AssertEqual(expected, result);
         }
@@ -24,10 +24,10 @@ namespace CommandLine.Tests.Unit.Core
         {
             var expected = new[]
                 {
-                    new KeyValuePair<string, IEnumerable<string>>("seq", new[] {"seq0", "seq1", "seq2"})
+                    new KeyValuePair<string, ValueGroup>("seq", new ValueGroup(Token.Name("seq"), ValueType.Sequence, "seq0", "seq1", "seq2"))
                 };
 
-            var result = KeyValuePairHelper.ForSequence(new []
+            var result = ValueGroup.ForSequence(new []
                 {
                     Token.Name("seq"), Token.Value("seq0"), Token.Value("seq1"), Token.Value("seq2") 
                 }).ToArray();
@@ -40,11 +40,11 @@ namespace CommandLine.Tests.Unit.Core
         {
             var expected = new[]
                 {
-                    new KeyValuePair<string, IEnumerable<string>>("seq1", new[] {"seq10", "seq11", "seq12"}),
-                    new KeyValuePair<string, IEnumerable<string>>("seq2", new[] {"seq20", "seq21"})
+                    new KeyValuePair<string, ValueGroup>("seq1", new ValueGroup(Token.Name("seq1"), ValueType.Sequence, "seq10", "seq11", "seq12")),
+                    new KeyValuePair<string, ValueGroup>("seq2", new ValueGroup(Token.Name("seq2"), ValueType.Sequence, "seq20", "seq21"))
                 };
 
-            var result = KeyValuePairHelper.ForSequence(new[]
+            var result = ValueGroup.ForSequence(new[]
                 {
                     Token.Name("seq1"), Token.Value("seq10"), Token.Value("seq11"), Token.Value("seq12"),
                     Token.Name("seq2"), Token.Value("seq20"), Token.Value("seq21")
@@ -53,13 +53,13 @@ namespace CommandLine.Tests.Unit.Core
             AssertEqual(expected, result);
         }
 
-        private static void AssertEqual(IEnumerable<KeyValuePair<string, IEnumerable<string>>> expected, IEnumerable<KeyValuePair<string, IEnumerable<string>>> result)
+        private static void AssertEqual(IEnumerable<KeyValuePair<string, ValueGroup>> expected, IEnumerable<KeyValuePair<string, ValueGroup>> result)
         {
             Assert.Equal(expected.Count(), result.Count());
             foreach (var value in expected.Zip(result, (e, r) => new { Expected = e, Result = r }))
             {
                 Assert.Equal(value.Expected.Key, value.Result.Key);
-                Assert.Equal(value.Expected.Value, value.Result.Value);
+                Assert.Equal(value.Expected.Value.Values, value.Result.Value.Values);
             }
         }
     }

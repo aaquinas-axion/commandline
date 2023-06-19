@@ -1598,16 +1598,16 @@ namespace CommandLine.Tests.Unit.Core
             //Arrange
 
             // Act
-            var result = InvokeBuild<CustomStructOptionsForTypeConverter>(arguments);
-            var result2 = InvokeBuild<CustomStructOptionsForTypeConverter>(arguments, useAppDomainTypeConverters:true);
+            var result = InvokeBuild<Custom_Struct_With_Type_Converter>(arguments);
+            var result2 = InvokeBuild<Custom_Struct_With_Type_Converter>(arguments, useAppDomainTypeConverters:true);
 
             // Assert
-            var customValue = ((Parsed<CustomStructOptionsForTypeConverter>)result).Value.Custom;
+            var customValue = ((Parsed<Custom_Struct_With_Type_Converter>)result).Value.Custom;
             customValue.Server.Should().Be(expectedServer);
             customValue.Port.Should().Be(expectedPort);
             customValue.Input.Should().Be(arguments[1]);
 
-            var customValue2 = ((Parsed<CustomStructOptionsForTypeConverter>)result2).Value.Custom;
+            var customValue2 = ((Parsed<Custom_Struct_With_Type_Converter>)result2).Value.Custom;
             customValue2.Server.Should().Be(expectedServer);
             customValue2.Port.Should().Be(expectedPort);
             customValue2.Input.Should().Be(arguments[1]);
@@ -1615,7 +1615,7 @@ namespace CommandLine.Tests.Unit.Core
 
         [Theory]
         [InlineData(new[] { "-c", "localhost:8080" }, "localhost", 8080)]
-        public void Parse_custom_class_type_with_converter(string[] arguments, string expectedServer, int expectedPort)
+        public void Parse_custom_with_custom_converter(string[] arguments, string expectedServer, int expectedPort)
         {
             //Arrange
 
@@ -1634,7 +1634,28 @@ namespace CommandLine.Tests.Unit.Core
             customValue2.Port.Should().Be(expectedPort);
             customValue2.Input.Should().Be(arguments[1]);
         }
-        
+
+        [Theory]
+        [InlineData(new string[0] ,             false, true)]
+        [InlineData(new[]{"No"} ,               false, true)]
+        [InlineData(new[]{"Yes"} ,              true,  true)]
+        [InlineData(new[]{"Yes", "-s", "No"} ,  true,  false)]
+        [InlineData(new[]{"Yes", "-s", "Yes"} , true,  true)]
+        public void Parse_custom_class_type_with_converter(string[] arguments, bool expectedFirst, bool expectedSecond)
+        {
+            var result  = InvokeBuild<Custom_YesNo_Type_Converter>(arguments);
+            var result2 = InvokeBuild<Custom_YesNo_Type_Converter>(arguments, useAppDomainTypeConverters:true);
+
+            // Assert
+            var customValue = ((Parsed<Custom_YesNo_Type_Converter>)result).Value;
+            customValue.First.Should().Be(expectedFirst);
+            customValue.Second.Should().Be(expectedSecond);
+
+            var customValue2 = ((Parsed<Custom_YesNo_Type_Converter>)result2).Value;
+            customValue2.First.Should().Be(expectedFirst);
+            customValue2.Second.Should().Be(expectedSecond);
+        }
+
         #endregion
         private class ValueWithNoSetterOptions
         {

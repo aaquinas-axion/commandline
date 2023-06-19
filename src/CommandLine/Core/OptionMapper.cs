@@ -16,7 +16,7 @@ namespace CommandLine.Core
                 IEnumerable<SpecificationProperty>, Error>
             MapValues(
                 IEnumerable<SpecificationProperty>                                  propertyTuples,
-                IEnumerable<KeyValuePair<string, IEnumerable<string>>>              options,
+                IEnumerable<KeyValuePair<string, ValueGroup>>                       options,
                 bool                                                                useAppDomainTypeConverters, 
                 Func<IEnumerable<string>, Type, Maybe<SysTypeConverter>, bool, bool, Maybe<object>> converter,
                 StringComparer                                                      comparer)
@@ -29,11 +29,11 @@ namespace CommandLine.Core
                             s.Key.MatchName(((OptionSpecification)pt.Specification).ShortName, ((OptionSpecification)pt.Specification).LongName, comparer)).ToMaybe();
                         if (matched.IsJust())
                         {
-                            var matches = matched.GetValueOrDefault(Enumerable.Empty<KeyValuePair<string, IEnumerable<string>>>());
+                            var matches = matched.GetValueOrDefault(Enumerable.Empty<KeyValuePair<string, ValueGroup>>());
                             var values = new List<string>();
                             foreach (var kvp in matches)
                             {
-                                foreach (var value in kvp.Value)
+                                foreach (var value in kvp.Value.Values)
                                 {
                                     values.Add(value);
                                 }
